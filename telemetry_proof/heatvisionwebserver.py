@@ -21,7 +21,7 @@ import adafruit_mlx90640
 
 
 
-PORT = 8000
+PORT = 8001
 
 
 
@@ -152,7 +152,7 @@ class TempHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         global heat_data
-        if self.path == '/TELEMETRY': # URL collision with main robot telemetry URL
+        if self.path == '/HEAT': 
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
@@ -168,22 +168,22 @@ class TempHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self): #if we want to change our temperature range. TODO add the "target temp field"
         global MINTEMP,MAXTEMP
-        
-        length = int(self.headers.get_all('content-length')[0])
+        if self.path == '/HEAT':
+            length = int(self.headers.get_all('content-length')[0])
 
-        data_string = self.rfile.read(length)
+            data_string = self.rfile.read(length)
 
-        self.send_response(200)
-        self.send_header("Content-type", "application/json")
-        self.end_headers()
-        self.flush_headers()
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.flush_headers()
 
-        heat_settings = json.loads(data_string)
+            heat_settings = json.loads(data_string)
 
-        MINTEMP=heat_settings["MINTEMP"]
-        MAXTEMP=heat_settings["MAXTEMP"]
+            MINTEMP=heat_settings["MINTEMP"]
+            MAXTEMP=heat_settings["MAXTEMP"]
 
-        self.wfile.write("".encode())
+            self.wfile.write("".encode())
 
     def log_message(self, format, *args): #silencing console
         pass
