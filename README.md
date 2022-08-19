@@ -7,6 +7,10 @@ The AtticBot is a tank tread equipped bot based on the OSEPP Tritank with heavy 
 
 ![Imgur Image](https://i.imgur.com/cZR0PQR.png)
 
+The bot is controlled via a PS4 controller (Bluetooth) using a Raspberry Pi Zero W and the Processing.org telemetry system pulls data via simple http endpoints
+
+
+
 ## Sensors and Imaging
 The bot is equipped with the following
 - 1 HD camera (USB)
