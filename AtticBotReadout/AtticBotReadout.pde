@@ -9,21 +9,22 @@ String TelemetryServer = "http://192.168.50.99:8000";
 int NUM_TELEMS = 2; //really this should be just a constant and you enable various telemetry later
 
 
-JSONObject attic_bot_data, accel_data, compass_data;
+JSONObject attic_bot_data, accel_data, compass_data, telemetry_data;
 JSONArray arm_data;
 String[] font_list;
 
 HudCompass compass; //currently offline, can be tested via mouse //see compassServer.py
 
 
-PImage AE35CamFeed, MainDisplay, bgImage;
+PImage AE35CamFeed, MainDisplay, bgImage, fakeheat;
 boolean NewImageAvailable = false;
-int imageDelay = 100; //to slow down requests to the pi
+int imageDelay = 200; //to slow down requests to the pi
 int lastImageGet = 0;
 
 ServoArm armData;
 AccelData accelData;
 LineGrapher grapher;
+HeatVision heatVision;
 Picker picker; //for mouse clicks to center a bit of telemetry
 int lastPicked = -1;
 
@@ -32,20 +33,22 @@ Telemetry[] T_Enabled =  new Telemetry[NUM_TELEMS]; //Since parts of the robot c
 
 
 void setup() {
-  size(1280, 720, P3D);
+  size(1280, 1024, P3D);
   surface.setTitle("Attic Bot Telemetry");
   surface.setResizable(true);
 
-
+  heatVision = new HeatVision(width/2, 200, this);
   picker = new Picker(this); //for clicking and centering
   armData = new ServoArm(10, 10, 0, 128, 0);
-  accelData = new AccelData(50, 50, 100, 100, 100, picker, 0);
+  accelData = new AccelData(50, 150, 100, 100, 100, picker, 0);
   grapher = new LineGrapher(100, 100, 100);
   compass = new HudCompass(0, 0, 100, 100, picker, 1);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
   //thread("getNewImage"); //Parts of the Pi side are still offline. Should add the threading to its own "Enabled" array
+  thread("updateHeatVision");
+
   T_Enabled[0] = accelData;
   T_Enabled[1] = compass ;
   println("added enabled telemetry!");
@@ -66,7 +69,9 @@ void draw() {
     //  MainDisplay = AE35CamFeed;
     NewImageAvailable = false;
     // thread("getNewImage"); //offline during testing
+    thread("updateHeatVision");
     lastImageGet = rightNow;
+    thread("updateHeatVision");
   }
 
   //AE35CamFeed = loadImage("http://192.168.50.99:8081/static/image.jpg"); //again, offline, requires motion OR the PTZ from arducam
@@ -79,15 +84,18 @@ void draw() {
     }
   }
   try {
-    loadJSONObject("http://192.168.50.99:8000/TELEMETRY");
+    telemetry_data = loadJSONObject("http://192.168.50.99:8000/TELEMETRY");
+    compass_data = telemetry_data.getJSONObject("compass_data");
+    accel_data = telemetry_data.getJSONObject("accel_data");
+    //fakeheat = heatVision.Update();
   }
   catch(Exception e) {
     println("trouble getting data");
   }
 
 
-  Float heading = map(mouseX, 0, width, 0, 180); ///testing the compass while it's off.
-
+  //  Float heading = map(mouseX, 0, width, 0, 180); ///testing the compass while it's off.
+  Float heading = compass_data.getFloat("heading");
   compass.setHeading(heading);
   compass.draw();
 
@@ -95,13 +103,15 @@ void draw() {
 
   //armData.draw();
   accelData.draw();
-///Let's update!
-for (int i = 0; i < NUM_TELEMS; i++) {
-  T_Enabled[i].update(attic_bot_data);
-  T_Enabled[i].draw();
-}
-
-  delay(100);
+  heatVision.draw();
+  ///Let's update!
+  /*
+  for (int i = 0; i < NUM_TELEMS; i++) {
+   T_Enabled[i].update(attic_bot_data);
+   T_Enabled[i].draw();
+   }
+   */
+  //delay(5);
 }
 
 
@@ -112,6 +122,16 @@ void getNewImage() {
   }
   catch(Exception e) {
     println("trouble getting image data");
+  }
+}
+
+void updateHeatVision() {
+  try {
+    heatVision.Update();
+    NewImageAvailable = true;
+  }
+  catch(Exception e) {
+    println("trouble getting heat data");
   }
 }
 

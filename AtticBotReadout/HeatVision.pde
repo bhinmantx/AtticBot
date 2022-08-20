@@ -17,12 +17,13 @@ class HeatVision {
   Picker picker;
   int pickID;
   Capture cam;
+  PImage heatvision;
   HeatVision(int BaseX, int BaseY, PApplet applet) {
     this.BaseX = BaseX;
     this.BaseY = BaseY;
-    this.heatX = 0;
-    this.heatY = 0;
-    this.heatSize = 100;
+    this.heatX = -594;
+    this.heatY = 140;
+    this.heatSize = 484;
     this.MINTEMP = 20.0;
     this.MAXTEMP = 40.0;
 
@@ -40,11 +41,11 @@ class HeatVision {
       this.cam.start(); //TODO: Add graceful failure
     }
   }
-  
-  
+
+
   void updateHeatSettings() { //I used to pass the new min/max temp values here
     try {
-      PostRequest post = new PostRequest("http://192.168.50.209:8001/HEAT"); //we should be passing this from constructor
+      PostRequest post = new PostRequest("http://192.168.50.99:8000/HEAT"); //we should be passing this from constructor
       post.addHeader("Content-Type", "application/json");
       post.addData("{\"MINTEMP\":" + this.MINTEMP + ",\"MAXTEMP\":"  + this.MAXTEMP+ "}"); //cheater cheater
       post.send(); //send request
@@ -55,45 +56,51 @@ class HeatVision {
     }
   }
 
-  void Update() {
+  PImage Update() {
     updateHeatOverlayPosition();
 
+    
     try {
-      this.heat_data  = loadJSONObject("http://192.168.50.209:8001/HEAT"); //again we should really be passing this URL
+      this.heat_data  = loadJSONObject("http://192.168.50.99:8000/HEAT"); //again we should really be passing this URL
       this.heat_readings = heat_data.getJSONArray("readings");
-
-      PImage img = createImage(32, 24, RGB);
-      img.loadPixels();
-      for (int i = 0; i < img.pixels.length; i++) {
+      this.heatvision = createImage(32, 24, RGB);
+      this.heatvision.loadPixels();
+      for (int i = 0; i < this.heatvision.pixels.length; i++) {
         JSONArray  reading = heat_readings.getJSONArray(i);
         int[] values = reading.getIntArray();
-        img.pixels[i] = color(values[0], values[1], values[2]);
+        this.heatvision.pixels[i] = color(values[0], values[1], values[2]);
       }
 
       if (this.cam.available() == true) {
         this.cam.read();
       }
-      tint(255, 127);
-
-      image(cam, 0, 0);
-
-      img.updatePixels();
-      img.resize(heatSize, 0);
-      pushMatrix();
-      scale(-1, 1);
-      image(img, this.heatX, this.heatY);
-      popMatrix();
-      delay(20);
+      //  tint(255, 127);
     }
     catch(Exception e) {
       println("trouble getting data");
     }
+    return this.heatvision;
+  }
+
+  void draw() {
+    pushMatrix();
+    translate(this.BaseX, this.BaseY);
+    tint(255, 127);
+    image(this.cam, 0, 0);
+    this.heatvision.updatePixels();
+    this.heatvision.resize(this.heatSize, 0);
+    scale(-1, 1);
+    image(this.heatvision, this.heatX, this.heatY);
+    popMatrix();
   }
 
   void updateHeatOverlayPosition() {
     //GOTCHA: if you have a modifier key depressed (like shift, or control) but not a "regular" key it will still act as though a "regular" key is depressed.
     //This can be helpful if you want a change to keep happening and only want to hold "shift"
     if (keyPressed) {
+      print("heatsize= " + this.heatSize);
+      print(" heatX= " + this.heatX);
+      println(" heatY= " + this.heatY);
       switch(key) {
       case 'w':
         this.heatY++;

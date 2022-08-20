@@ -132,7 +132,8 @@ class AccelData extends Telemetry {
   int horizonX1, horizonX2, horizonY1, horizonY2; //for the attitude line
   MovingAverage avgX;
   MovingAverage avgY;
-  float correctX, correctY;
+  MovingAverage avgZ;
+  float correctX, correctY, correctZ;
 
   AccelData(int BaseX, int BaseY, int r, int g, int b, Picker picker, int pickID) {
     super(BaseX, BaseY, r, g, b, picker, pickID);
@@ -144,11 +145,13 @@ class AccelData extends Telemetry {
     horizonY2 = 384;
     avgX = new MovingAverage(5);
     avgY = new MovingAverage(5);
+    avgZ = new MovingAverage(5);
   }
   //A=0
   void calibrate() {
     correctX = avgX.average();
     correctY = avgY.average();
+    correctZ = avgZ.average();
   }
   void update(JSONObject data, int update) {
     x = data.getFloat("x");
@@ -158,6 +161,7 @@ class AccelData extends Telemetry {
 
     avgX.nextValue(x - correctX);
     avgY.nextValue(y - correctY);
+    avgZ.nextValue(z - correctZ);
     lastUpdate = update;
   }
 
@@ -166,7 +170,6 @@ class AccelData extends Telemetry {
     return x;
   }
   void centerAndZoom(int newX, int newY) {   ///if the
-    println("NWWWWEEEEEWWWWW!");
     this.DrawX = newX;
     this.DrawY = newY;
     this.DrawX = width/2;
@@ -179,7 +182,7 @@ class AccelData extends Telemetry {
     if (millis() - lastUpdate > 5000) {
       // showWarning = true;
     }
-  
+
     pushMatrix();
     translate(DrawX, DrawY);
     fill(r, g, b);
@@ -203,7 +206,8 @@ class AccelData extends Telemetry {
     pushMatrix();
 
     push();
-    translate(512, 368, 100);
+    translate(300, 468, 100);
+    //    translate(512, 368, 100);
     strokeWeight(5);
     stroke(200, 0, 0);
     if (abs(avgX.average) > 3.0) {
@@ -211,9 +215,9 @@ class AccelData extends Telemetry {
     }
     float rotX = map(avgX.average(), -9, 9, 0, PI);
     float rotY = map(avgY.average(), -9, 9, 0, PI);
-
+    float rotZ = map(avgZ.average(), -9, 9, 0, PI);
     rotateZ(PI/2);
-    //  rotateY(rotY);
+    rotateY(rotY);
     rotateX(rotX);
 
     stroke(255);
