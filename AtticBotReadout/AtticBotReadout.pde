@@ -25,6 +25,10 @@ ServoArm armData;
 AccelData accelData;
 LineGrapher grapher;
 HeatVision heatVision;
+
+
+ArrayList<Pickable> pickables = new ArrayList<Pickable>();
+
 Picker picker; //for mouse clicks to center a bit of telemetry
 int lastPicked = -1;
 
@@ -38,9 +42,11 @@ void setup() {
   surface.setResizable(true);
 
 
-  picker = new Picker(this); //for clicking and centering
+  // picker = new Picker(this); //for clicking and centering
   armData = new ServoArm(10, 10, 0, 128, 0);
   accelData = new AccelData(50, 150, 100, 100, 100, picker, 0);
+  Pickable accel = new Pickable(50, 150, 300, 200);
+  pickables.add(accel);
   grapher = new LineGrapher(100, 100, 100);
   compass = new HudCompass(0, 0, 100, 100, picker, 1);
   heatVision = new HeatVision(width/2, 200, this, picker, 2);
@@ -53,7 +59,7 @@ void setup() {
   T_Enabled[0] = accelData;
   T_Enabled[1] = compass ;
   T_Enabled[2] = heatVision ;
-  //  T_Enabled[3] = heatVision;
+
   println("added enabled telemetry!");
 }
 
@@ -98,15 +104,15 @@ void draw() {
   }
 
   for (int i = 0; i < NUM_TELEMS; i++) {
-   // T_Enabled[i].update(telemetry_data);
-   // T_Enabled[i].Tdraw();
+    // T_Enabled[i].update(telemetry_data);
+    // T_Enabled[i].Tdraw();
   }
   T_Enabled[0].update(telemetry_data);
-   T_Enabled[0].Tdraw();
-   T_Enabled[1].update(telemetry_data);
-   T_Enabled[1].Tdraw();
-T_Enabled[2].update(telemetry_data);
-T_Enabled[2].Tdraw();
+  T_Enabled[0].Tdraw();
+  T_Enabled[1].update(telemetry_data);
+  T_Enabled[1].Tdraw();
+  T_Enabled[2].update(telemetry_data);
+  T_Enabled[2].Tdraw();
   //delay(5);
 }
 
@@ -175,23 +181,42 @@ void drawCylinder( int sides, float r, float h) //This is for the wheels. Just n
 
 void mouseClicked() { //for the clicker
 
-  int id = picker.get(mouseX, mouseY);
-  println("yep. You clicked ID: " + id);
-  if (id > NUM_TELEMS) { //outside of zones?
-    if (lastPicked > -1) {
-      T_Enabled[lastPicked].unCenterAndUnZoom();
-      lastPicked = -1;
-    }
-    return;
+
+  for (int j = 0; j < 0; j++) {
+    Pickable part = pickables.get(j);
+    part.WasClicked(mouseX, mouseY);
   }
 
-  if (id > -1) {
-    if (id != lastPicked) {
-      T_Enabled[id].centerAndZoom(222, 222);
-      lastPicked = id;
-    } else {
-      T_Enabled[lastPicked].unCenterAndUnZoom();
-      lastPicked = -1;
-    }
-  }
+  /* //enhanced loop
+   for (int i = 0; i < particles.size(); i++) {
+   Particle part = particles.get(i);
+   part.display();
+   }
+   
+   // The second is using an enhanced loop:
+   for (Particle part : particles) {
+   part.display();
+   }
+   */
+  /*
+  int id = picker.get(mouseX, mouseY);
+   println("yep. You clicked ID: " + id);
+   if (id > NUM_TELEMS) { //outside of zones?
+   if (lastPicked > -1) {
+   T_Enabled[lastPicked].unCenterAndUnZoom();
+   lastPicked = -1;
+   }
+   return;
+   }
+   
+   if (id > -1) {
+   if (id != lastPicked) {
+   T_Enabled[id].centerAndZoom(222, 222);
+   lastPicked = id;
+   } else {
+   T_Enabled[lastPicked].unCenterAndUnZoom();
+   lastPicked = -1;
+   }
+   }
+   */
 }
