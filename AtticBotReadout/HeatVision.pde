@@ -7,20 +7,17 @@ import processing.video.*;
 
 
 
-class HeatVision {
-  int BaseX, BaseY, DrawX, DrawY;
+class HeatVision extends Telemetry {
+  //int BaseX, BaseY, DrawX, DrawY;
   int heatX, heatY, heatSize; //position of the heat image
   float MINTEMP, MAXTEMP;
-  PApplet applet; //For camera initialization!
   JSONObject heat_data;
   JSONArray heat_readings;
-  Picker picker;
-  int pickID;
+  PApplet applet; //For camera initialization!
   Capture cam;
   PImage heatvision;
-  HeatVision(int BaseX, int BaseY, PApplet applet) {
-    this.BaseX = BaseX;
-    this.BaseY = BaseY;
+  HeatVision(int BaseX, int BaseY, PApplet applet, Picker picker, int pickID) {
+    super(BaseX, BaseY, 100, 100, 100, picker, pickID);
     this.heatX = -594;
     this.heatY = 140;
     this.heatSize = 484;
@@ -56,10 +53,8 @@ class HeatVision {
     }
   }
 
-  PImage Update() {
+  void update(JSONObject ignoring) {
     updateHeatOverlayPosition();
-
-    
     try {
       this.heat_data  = loadJSONObject("http://192.168.50.99:8000/HEAT"); //again we should really be passing this URL
       this.heat_readings = heat_data.getJSONArray("readings");
@@ -74,29 +69,39 @@ class HeatVision {
       if (this.cam.available() == true) {
         this.cam.read();
       }
-      //  tint(255, 127);
     }
     catch(Exception e) {
       println("trouble getting data");
     }
-    return this.heatvision;
+    return;
   }
 
   void draw() {
     pushMatrix();
     translate(this.BaseX, this.BaseY);
+    this.picker.start(this.pickID);
+    pushMatrix();
+    this.drawBorder(this.cam.width, this.cam.height);
+    popMatrix();
+    
     tint(255, 127);
     image(this.cam, 0, 0);
     this.heatvision.updatePixels();
     this.heatvision.resize(this.heatSize, 0);
+    pushMatrix();
     scale(-1, 1);
     image(this.heatvision, this.heatX, this.heatY);
+    popMatrix();
+this.picker.stop();
     popMatrix();
   }
 
   void updateHeatOverlayPosition() {
     //GOTCHA: if you have a modifier key depressed (like shift, or control) but not a "regular" key it will still act as though a "regular" key is depressed.
     //This can be helpful if you want a change to keep happening and only want to hold "shift"
+    if (!this.isZoomed) {
+      return;
+    }
     if (keyPressed) {
       print("heatsize= " + this.heatSize);
       print(" heatX= " + this.heatX);

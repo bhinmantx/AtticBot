@@ -1,6 +1,5 @@
 class HudCompass extends Telemetry { ////assuming a top center? I guess?
   PImage compassStrip;
-  //private int stripX, stripY;
   private float heading;
   private float compass1X, compass1Y = 0;
   private float compass2X, compass2Y, compass3X, compass3Y = 0;
@@ -12,14 +11,18 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
     super(BaseX, BaseY, 100, 100, 100, picker, pickID);
     this.compassStrip =loadImage("data/smartCompassStrip.png", "png");
     compassStrip.resize(width, 0);
-
   }
 
-  public void update() {
-    this.setHeading(1.0);
+  public void update(JSONObject data) {
+    try {
+   this.setHeading( data.getJSONObject("compass_data").getFloat("heading"));
+    }
+    catch(Exception e){
+      println("Problem with compass heading");
+    }
   }
-  
-  public void setHeading(float heading) {
+
+  public void setHeading(float heading) { //For direct setting compass for testing
     this.heading = heading;
   }
 
@@ -34,9 +37,9 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
     this.compass1X =  map(this.heading, 359.99, 0, 0, this.compassStrip.width);//cheating again with that .99
     image(this.compassStrip, this.compass1X, this.compass1Y);
 
-    if (this.compass1X< 0 && this.compass1X > 0 - this.compassStrip.width ) { 
+    if (this.compass1X< 0 && this.compass1X > 0 - this.compassStrip.width ) {
 
-      this.compass2X = width - abs(0-this.compass1X); 
+      this.compass2X = width - abs(0-this.compass1X);
       image(this.compassStrip, this.compass2X, this.compass2Y) ; // starting to wrap
     }
 
