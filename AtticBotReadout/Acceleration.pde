@@ -8,8 +8,8 @@ class AccelData extends Telemetry {
   MovingAverage avgZ;
   float correctX, correctY, correctZ;
 
-  AccelData(int BaseX, int BaseY, int r, int g, int b, Picker picker, int pickID) {
-    super(BaseX, BaseY, r, g, b, picker, pickID);
+  AccelData(int BaseX, int BaseY, int w, int h, ArrayList<Pickable>  pickables, int pickID) {
+    super(BaseX, BaseY, w, h, pickables, pickID);
     dataFont = createFont("Georgia", 32);
     //350,384,0, 550, 384, 0
     horizonX1 = 350;
@@ -60,20 +60,17 @@ class AccelData extends Telemetry {
       // showWarning = true;
     }
 
-    //DISABLED//this.picker.start(this.pickID);
 
-                                                                                  pushMatrix();
-    
+
+    pushMatrix();
+
 
     translate(DrawX, DrawY);
-    this.drawBorder(300, 200, color(255, 0, 255));
+    this.drawBorder(this.w, this.h, color(255, 0, 255));
     fill(r, g, b);
-    //textSize(30);
+
     textFont(dataFont);
-    //  w = 300;
-    //  h = 240; //should be like, number servos time font size
-    //   //DISABLED//this.picker.start(this.pickID);
-    // rect(0, 0, w, h);
+
 
     if (showWarning) {
       //fill(255, 0, 0);
@@ -84,13 +81,7 @@ class AccelData extends Telemetry {
     text("X: " + x, 5, 80 );
     text("Y: " + y, 5, 120 );
     text("Z: " + z, 5, 160);
-    //                                                           popMatrix(); //readout!
-
-
-
-                                                                pushMatrix();
-
-
+    pushMatrix();
     translate(200, 300, 100);
     strokeWeight(5);
     stroke(200, 0, 0);
@@ -100,7 +91,7 @@ class AccelData extends Telemetry {
     float rotX = map(avgX.average(), -9, 9, 0, PI);
     float rotY = map(avgY.average(), -9, 9, 0, PI);
     float rotZ = map(avgZ.average(), -9, 9, 0, PI);
-    rotateZ(PI/2);
+    rotateZ(PI/4);
     rotateY(rotY);
     rotateX(rotX);
 
@@ -111,21 +102,20 @@ class AccelData extends Telemetry {
     fill(127);
     box(160, 80, 200);
 
-                                                            pushMatrix();
-  
+    pushMatrix();
+
     translate(20, 50, 100);
-                                                            pushMatrix();
+    pushMatrix();
 
     float spin = map(mouseX, 0, width, 0.0, 2*3.1415);
     rotateZ(spin);
     drawCylinder(30, 50.0, 50.0);
 
-                                                              popMatrix();
+    popMatrix();
     translate(-100, 0, 0);
     drawCylinder(30, 50.0, 50.0);
-                                                            popMatrix();
-                                                                popMatrix();
-                                                            popMatrix(); //readout!
-    //DISABLED//this.picker.stop();
+    popMatrix();
+    popMatrix();
+    popMatrix(); //readout!
   }
 }

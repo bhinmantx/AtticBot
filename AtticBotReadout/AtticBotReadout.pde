@@ -5,7 +5,8 @@ Telemetry reader and some config for a Raspberry Pi based robot with several sen
 import picking.*; //n.clavaud.free.fr/cv/ Nicolas Clavaud
 
 
-String TelemetryServer = "http://192.168.50.99:8000";
+String TelemetryServer = "http://192.168.50.209:8000";
+
 int NUM_TELEMS = 3; //really this should be just a constant and you enable various telemetry later
 
 
@@ -40,16 +41,11 @@ void setup() {
   size(1280, 1024, P3D);
   surface.setTitle("Attic Bot Telemetry");
   surface.setResizable(true);
-
-
-  // picker = new Picker(this); //for clicking and centering
   armData = new ServoArm(10, 10, 0, 128, 0);
-  accelData = new AccelData(50, 150, 100, 100, 100, picker, 0);
-  Pickable accel = new Pickable(50, 150, 300, 200);
-  pickables.add(accel);
+  accelData = new AccelData(50, 150, 200, 300, pickables, 0);
   grapher = new LineGrapher(100, 100, 100);
-  compass = new HudCompass(0, 0, 100, 100, picker, 1);
-  heatVision = new HeatVision(width/2, 200, this, picker, 2);
+  compass = new HudCompass(0, 0, pickables, 1);
+  heatVision = new HeatVision(width/2, 200, this, pickables, 2);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
@@ -73,15 +69,15 @@ void draw() {
   imageMode(CORNER);
 
   int rightNow = millis();
-  //Deal with threaded images
+  //Deal with threaded images later
   if (rightNow - lastImageGet > imageDelay && NewImageAvailable) {
 
     //  MainDisplay = AE35CamFeed;
     NewImageAvailable = false;
     // thread("getNewImage"); //offline during testing
-    thread("updateHeatVision");
+
     lastImageGet = rightNow;
-    thread("updateHeatVision");
+
   }
 
   //AE35CamFeed = loadImage("http://192.168.50.99:8081/static/image.jpg"); //again, offline, requires motion OR the PTZ from arducam
@@ -94,26 +90,19 @@ void draw() {
     }
   }
   try {
+    int t =  millis();
     telemetry_data = loadJSONObject(TelemetryServer + "/TELEMETRY");
-    //   compass_data = telemetry_data.getJSONObject("compass_data");
-    //   accel_data = telemetry_data.getJSONObject("accel_data");
-    //fakeheat = heatVision.Update();
+    int s = millis();
+    // println(s - t);
   }
   catch(Exception e) {
     println("trouble getting data");
   }
 
   for (int i = 0; i < NUM_TELEMS; i++) {
-    // T_Enabled[i].update(telemetry_data);
-    // T_Enabled[i].Tdraw();
+    T_Enabled[i].update(telemetry_data);
+    T_Enabled[i].Tdraw();
   }
-  T_Enabled[0].update(telemetry_data);
-  T_Enabled[0].Tdraw();
-  T_Enabled[1].update(telemetry_data);
-  T_Enabled[1].Tdraw();
-  T_Enabled[2].update(telemetry_data);
-  T_Enabled[2].Tdraw();
-  //delay(5);
 }
 
 
@@ -181,42 +170,28 @@ void drawCylinder( int sides, float r, float h) //This is for the wheels. Just n
 
 void mouseClicked() { //for the clicker
 
-
-  for (int j = 0; j < 0; j++) {
+  int click_id = NUM_TELEMS+1;
+  for (int j = 0; j < pickables.size(); j++) {
     Pickable part = pickables.get(j);
-    part.WasClicked(mouseX, mouseY);
+    if (part.WasClicked(mouseX, mouseY)) {
+      click_id = j;
+    }
+  }
+  if (click_id > NUM_TELEMS) { //outside of zones?
+    if (lastPicked > -1) {
+      T_Enabled[lastPicked].unCenterAndUnZoom();
+      lastPicked = -1;
+    }
+    return;
   }
 
-  /* //enhanced loop
-   for (int i = 0; i < particles.size(); i++) {
-   Particle part = particles.get(i);
-   part.display();
-   }
-   
-   // The second is using an enhanced loop:
-   for (Particle part : particles) {
-   part.display();
-   }
-   */
-  /*
-  int id = picker.get(mouseX, mouseY);
-   println("yep. You clicked ID: " + id);
-   if (id > NUM_TELEMS) { //outside of zones?
-   if (lastPicked > -1) {
-   T_Enabled[lastPicked].unCenterAndUnZoom();
-   lastPicked = -1;
-   }
-   return;
-   }
-   
-   if (id > -1) {
-   if (id != lastPicked) {
-   T_Enabled[id].centerAndZoom(222, 222);
-   lastPicked = id;
-   } else {
-   T_Enabled[lastPicked].unCenterAndUnZoom();
-   lastPicked = -1;
-   }
-   }
-   */
+  if (click_id > -1) {
+    if (click_id != lastPicked) {
+      T_Enabled[click_id].centerAndZoom(222, 222);
+      lastPicked = click_id;
+    } else {
+      T_Enabled[lastPicked].unCenterAndUnZoom();
+      lastPicked = -1;
+    }
+  }
 }

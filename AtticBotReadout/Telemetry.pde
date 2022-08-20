@@ -25,31 +25,30 @@ class Telemetry {
   int BaseX, BaseY, DrawX, DrawY; // saving where we want to draw, and where to start our draw
   int r, g, b; //background colors for the shape
   int w, h; //we draw a background shape
-  Picker picker;
+  ArrayList<Pickable> picker;
   int pickID;
   boolean isZoomed;
-  Telemetry(int BaseX, int BaseY, int r, int g, int b) {
+  Telemetry(int BaseX, int BaseY) {
     this.BaseX = BaseX;
     this.BaseY = BaseY;
     this.DrawX = BaseX;
     this.DrawY = BaseY;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+
     this.isZoomed = false;
   }
 
-  Telemetry(int BaseX, int BaseY, int r, int g, int b, Picker picker, int pickID) {
+  Telemetry(int BaseX, int BaseY, int w, int h, ArrayList<Pickable> picker, int pickID) {
     this.BaseX = BaseX;
     this.BaseY = BaseY;
     this.DrawX = BaseX;
     this.DrawY = BaseY;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    this.w = w;
+    this.h = h;
     this.picker = picker;
     this.pickID = pickID;
     this.isZoomed = false;
+    Pickable picked = new Pickable(this.BaseX, this.BaseY, this.w, this.h, this.pickID);
+    pickables.add(picked);
   }
 
 
@@ -58,7 +57,7 @@ class Telemetry {
   void update(JSONObject data) {
   }
 
-  void centerAndZoom(int newX, int newY) {   
+  void centerAndZoom(int newX, int newY) {
     this.isZoomed = true;
     this.DrawX = newX;
     this.DrawY = newY;
@@ -71,16 +70,16 @@ class Telemetry {
   }
 
   public void Tdraw () {
-    this.drawBorder(100, 100, 128);
+    this.drawBorder(this.w, this.h, 128);
   }
   void drawBorder(int borderWidth, int borderHeight, int borderColor) {
-  
-   // //DISABLED//this.picker.start(this.pickID);
-   
     fill(borderColor);
     stroke(153);
-    rect(0,0, borderWidth, borderHeight);
-   // //DISABLED//this.picker.stop();
- 
+    rect(0, 0, borderWidth, borderHeight);
+  }
+    void drawBorder(int borderWidth, int borderHeight) {
+
+    stroke(153);
+    rect(0, 0, borderWidth, borderHeight);
   }
 }

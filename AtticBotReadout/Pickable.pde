@@ -5,16 +5,17 @@
 
 class Pickable implements Comparable<Pickable> {
 
-  int x, y, pWidth, pHeight;
+  int x, y, pWidth, pHeight, id;
 
-  Pickable(int x, int y, int pWidth, int pHeight) {
+  Pickable(int x, int y, int pWidth, int pHeight, int id) {
     this.x = x;
     this.y = y;
     this.pWidth = pWidth;
     this.pHeight = pHeight;
+    this.id = id;
   }
   
-  public void WasClicked(int cx, int cy) {
+  public boolean WasClicked(int cx, int cy) {
     
     /*
      given x, y...
@@ -25,11 +26,13 @@ class Pickable implements Comparable<Pickable> {
     if (cx >= this.x && cx <= this.x + this.pWidth){
       //Might be clicked!
       if (cy >= this.y && cy <= this.y + this.pHeight) {
-        println("Yes. Was Clicked");
+        println("Yes. Was Clicked: " + this.id);
+        return true;
       }
     } else {
       println("no");
     }
+    return false;
   }
   
     @Override //If we need to sort

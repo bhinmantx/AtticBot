@@ -5,7 +5,7 @@ class ServoArm extends Telemetry {
   PFont dataFont;
   int lastUpdate;
   ServoArm(int BaseX, int BaseY, int r, int g, int b) {
-    super(BaseX, BaseY, r, g, b);
+    super(BaseX, BaseY);
     dataFont = createFont("Georgia", 32);
   }
   //A=0
