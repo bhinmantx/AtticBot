@@ -17,8 +17,8 @@ class LineGrapher {
     }
   }
 
-  public void draw(float gotX) {
-    pushMatrix();
+  public void Tdraw(float gotX) {
+                                                                                                            pushMatrix();
     fill(0, 255, 0);
     translate(width/2, height/2);
     for (int i = 0; i<=graphWidth; i+=4) {
@@ -34,7 +34,7 @@ class LineGrapher {
       vertex(i, 350-data[i]);
     }
     endShape();
-    popMatrix();
+                                                                                                            popMatrix();
     for (int i = 1; i<data.length; i++) {
       data[i-1] = data[i];
     }

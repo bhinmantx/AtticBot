@@ -5,11 +5,12 @@ Telemetry reader and some config for a Raspberry Pi based robot with several sen
 import picking.*; //n.clavaud.free.fr/cv/ Nicolas Clavaud
 
 
-String TelemetryServer = "http://192.168.50.99:8000";
-int NUM_TELEMS = 2; //really this should be just a constant and you enable various telemetry later
+String TelemetryServer = "http://192.168.50.209:8000";
+
+int NUM_TELEMS = 3; //really this should be just a constant and you enable various telemetry later
 
 
-JSONObject attic_bot_data, accel_data, compass_data;
+JSONObject attic_bot_data, accel_data, compass_data, telemetry_data;
 JSONArray arm_data;
 String[] font_list;
 
@@ -18,12 +19,17 @@ HudCompass compass; //currently offline, can be tested via mouse //see compassSe
 
 PImage AE35CamFeed, MainDisplay, bgImage;
 boolean NewImageAvailable = false;
-int imageDelay = 100; //to slow down requests to the pi
+int imageDelay = 200; //to slow down requests to the pi
 int lastImageGet = 0;
 
 ServoArm armData;
 AccelData accelData;
 LineGrapher grapher;
+HeatVision heatVision;
+
+
+ArrayList<Pickable> pickables = new ArrayList<Pickable>();
+
 Picker picker; //for mouse clicks to center a bit of telemetry
 int lastPicked = -1;
 
@@ -32,22 +38,24 @@ Telemetry[] T_Enabled =  new Telemetry[NUM_TELEMS]; //Since parts of the robot c
 
 
 void setup() {
-  size(1280, 720, P3D);
+  size(1280, 1024, P3D);
   surface.setTitle("Attic Bot Telemetry");
   surface.setResizable(true);
-
-
-  picker = new Picker(this); //for clicking and centering
   armData = new ServoArm(10, 10, 0, 128, 0);
-  accelData = new AccelData(50, 50, 100, 100, 100, picker, 0);
+  accelData = new AccelData(50, 150, 200, 300, pickables, 0);
   grapher = new LineGrapher(100, 100, 100);
-  compass = new HudCompass(0, 0, 100, 100, picker, 1);
+  compass = new HudCompass(0, 0, pickables, 1);
+  heatVision = new HeatVision(width/2, 200, this, pickables, 2);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
   //thread("getNewImage"); //Parts of the Pi side are still offline. Should add the threading to its own "Enabled" array
+  //thread("updateHeatVision");
+
   T_Enabled[0] = accelData;
   T_Enabled[1] = compass ;
+  T_Enabled[2] = heatVision ;
+
   println("added enabled telemetry!");
 }
 
@@ -61,12 +69,15 @@ void draw() {
   imageMode(CORNER);
 
   int rightNow = millis();
+  //Deal with threaded images later
   if (rightNow - lastImageGet > imageDelay && NewImageAvailable) {
 
     //  MainDisplay = AE35CamFeed;
     NewImageAvailable = false;
     // thread("getNewImage"); //offline during testing
+
     lastImageGet = rightNow;
+
   }
 
   //AE35CamFeed = loadImage("http://192.168.50.99:8081/static/image.jpg"); //again, offline, requires motion OR the PTZ from arducam
@@ -79,29 +90,19 @@ void draw() {
     }
   }
   try {
-    loadJSONObject("http://192.168.50.99:8000/TELEMETRY");
+    int t =  millis();
+    telemetry_data = loadJSONObject(TelemetryServer + "/TELEMETRY");
+    int s = millis();
+    // println(s - t);
   }
   catch(Exception e) {
     println("trouble getting data");
   }
 
-
-  Float heading = map(mouseX, 0, width, 0, 180); ///testing the compass while it's off.
-
-  compass.setHeading(heading);
-  compass.draw();
-
-  accelData.update(accel_data, 0);
-
-  //armData.draw();
-  accelData.draw();
-///Let's update!
-for (int i = 0; i < NUM_TELEMS; i++) {
-  T_Enabled[i].update(attic_bot_data);
-  T_Enabled[i].draw();
-}
-
-  delay(100);
+  for (int i = 0; i < NUM_TELEMS; i++) {
+    T_Enabled[i].update(telemetry_data);
+    T_Enabled[i].Tdraw();
+  }
 }
 
 
@@ -112,6 +113,16 @@ void getNewImage() {
   }
   catch(Exception e) {
     println("trouble getting image data");
+  }
+}
+
+void updateHeatVision() {
+  try {
+    heatVision.update(telemetry_data);
+    NewImageAvailable = true;
+  }
+  catch(Exception e) {
+    println("trouble getting heat data");
   }
 }
 
@@ -159,9 +170,14 @@ void drawCylinder( int sides, float r, float h) //This is for the wheels. Just n
 
 void mouseClicked() { //for the clicker
 
-  int id = picker.get(mouseX, mouseY);
-  println("yep. You clicked ID: " + id);
-  if (id > NUM_TELEMS) { //outside of zones?
+  int click_id = NUM_TELEMS+1;
+  for (int j = 0; j < pickables.size(); j++) {
+    Pickable part = pickables.get(j);
+    if (part.WasClicked(mouseX, mouseY)) {
+      click_id = j;
+    }
+  }
+  if (click_id > NUM_TELEMS) { //outside of zones?
     if (lastPicked > -1) {
       T_Enabled[lastPicked].unCenterAndUnZoom();
       lastPicked = -1;
@@ -169,10 +185,10 @@ void mouseClicked() { //for the clicker
     return;
   }
 
-  if (id > -1) {
-    if (id != lastPicked) {
-      T_Enabled[id].centerAndZoom(222, 222);
-      lastPicked = id;
+  if (click_id > -1) {
+    if (click_id != lastPicked) {
+      T_Enabled[click_id].centerAndZoom(222, 222);
+      lastPicked = click_id;
     } else {
       T_Enabled[lastPicked].unCenterAndUnZoom();
       lastPicked = -1;
