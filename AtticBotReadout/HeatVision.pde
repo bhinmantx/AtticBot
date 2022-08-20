@@ -8,7 +8,6 @@ import processing.video.*;
 
 
 class HeatVision extends Telemetry {
-  //int BaseX, BaseY, DrawX, DrawY;
   int heatX, heatY, heatSize; //position of the heat image
   float MINTEMP, MAXTEMP;
   JSONObject heat_data;
@@ -76,24 +75,24 @@ class HeatVision extends Telemetry {
     return;
   }
 
-  void draw() {
-    pushMatrix();
-    translate(this.BaseX, this.BaseY);
-    this.picker.start(this.pickID);
-    pushMatrix();
-    this.drawBorder(this.cam.width, this.cam.height);
-    popMatrix();
+  public void Tdraw() {
+                                                                                        pushMatrix();
+    translate(this.DrawX, this.DrawY);
+    //DISABLED//this.picker.start(this.pickID);
+                                                                                          pushMatrix();
+    this.drawBorder(this.cam.width, this.cam.height, color(0,255,0));
+                                                                                            popMatrix();
     
     tint(255, 127);
     image(this.cam, 0, 0);
     this.heatvision.updatePixels();
     this.heatvision.resize(this.heatSize, 0);
-    pushMatrix();
+                                                                                          pushMatrix();
     scale(-1, 1);
     image(this.heatvision, this.heatX, this.heatY);
-    popMatrix();
-this.picker.stop();
-    popMatrix();
+                                                                                        popMatrix();
+//DISABLED//this.picker.stop();
+                                                                                          popMatrix();
   }
 
   void updateHeatOverlayPosition() {

@@ -70,16 +70,17 @@ class Telemetry {
     this.DrawY = this.BaseY;
   }
 
-  void draw () {
+  public void Tdraw () {
     this.drawBorder(100, 100, 128);
   }
   void drawBorder(int borderWidth, int borderHeight, int borderColor) {
+  
+   // //DISABLED//this.picker.start(this.pickID);
    
-   // this.picker.start(this.pickID);
-    fill(borderColor, 0, 0, 128);
+    fill(borderColor);
     stroke(153);
     rect(0,0, borderWidth, borderHeight);
-   // this.picker.stop();
+   // //DISABLED//this.picker.stop();
  
   }
 }
@@ -103,12 +104,12 @@ class ServoArm extends Telemetry {
     servoDPos = data.getInt(3);
     lastUpdate = update;
   }
-  void draw() {
+  void Tdraw() {
     Boolean showWarning = false;
     if (millis() - lastUpdate > 5000) {
       // showWarning = true;
     }
-    pushMatrix();
+                                                      pushMatrix();
     translate(DrawX, DrawY);
     fill(r, g, b);
     //textSize(30);
@@ -126,6 +127,6 @@ class ServoArm extends Telemetry {
     text("ServoB: " + servoBPos, 5, 120 );
     text("ServoC: " + servoCPos, 5, 160);
     text("ServoD: " + servoDPos, 5, 200 );
-    popMatrix();
+                                                                  popMatrix();
   }
 }

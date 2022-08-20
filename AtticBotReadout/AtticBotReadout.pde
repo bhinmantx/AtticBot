@@ -98,10 +98,15 @@ void draw() {
   }
 
   for (int i = 0; i < NUM_TELEMS; i++) {
-    T_Enabled[i].update(telemetry_data);
-    T_Enabled[i].draw();
+   // T_Enabled[i].update(telemetry_data);
+   // T_Enabled[i].Tdraw();
   }
-
+  T_Enabled[0].update(telemetry_data);
+   T_Enabled[0].Tdraw();
+   T_Enabled[1].update(telemetry_data);
+   T_Enabled[1].Tdraw();
+T_Enabled[2].update(telemetry_data);
+T_Enabled[2].Tdraw();
   //delay(5);
 }
 

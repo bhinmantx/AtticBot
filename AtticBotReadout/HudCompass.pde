@@ -30,8 +30,9 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
   void centerAndZoom(int newX, int newY) {
   }
 
-  public void draw() {
-    push();
+  //public void draw() {
+    public void Tdraw() {
+                                                                                            pushMatrix();
     translate(this.DrawX, this.DrawY);
     line(width/2-1, 0, width/2-1, this.compassStrip.height);
     this.compass1X =  map(this.heading, 359.99, 0, 0, this.compassStrip.width);//cheating again with that .99
@@ -40,13 +41,13 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
     if (this.compass1X< 0 && this.compass1X > 0 - this.compassStrip.width ) {
 
       this.compass2X = width - abs(0-this.compass1X);
-      image(this.compassStrip, this.compass2X, this.compass2Y) ; // starting to wrap
+   //   image(this.compassStrip, this.compass2X, this.compass2Y) ; // starting to wrap
     }
 
     if (this.compass1X > 0) { // image gap on the left
       this.compass3X =  0 - this.compassStrip.width + this.compass1X;
       image(this.compassStrip, this.compass3X, this.compass3Y) ; // for the other side
     }
-    pop();
+                                                                                              popMatrix();
   }
 }
