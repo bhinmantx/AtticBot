@@ -49,8 +49,10 @@ class AccelData extends Telemetry {
   void centerAndZoom(int newX, int newY) {
     this.DrawX = newX;
     this.DrawY = newY;
+
  //   this.DrawX = width/2;
   //  this.DrawY = height/2;
+
   }
 
   public void Tdraw() {
@@ -63,7 +65,6 @@ class AccelData extends Telemetry {
 
 
     pushMatrix();
-
     translate(DrawX, DrawY);
     this.drawBorder(this.w, this.h, color(255, 0, 255));
     fill(r, g, b);
@@ -82,13 +83,13 @@ class AccelData extends Telemetry {
     text("Z: " + z, 5, 160);
 
 
-
     pushMatrix();
     translate(200, 400, 100); //moving the 3d model
     pushMatrix();
 
     rotateX(mouseRotX);
     rotateY(mouseRotY);
+
     strokeWeight(5);
     stroke(200, 0, 0);
     if (abs(avgX.average) > 3.0) {
@@ -97,7 +98,9 @@ class AccelData extends Telemetry {
     float rotX = map(avgX.average(), -9, 9, 0, PI);
     float rotY = map(avgY.average(), -9, 9, 0, PI);
     float rotZ = map(avgZ.average(), -9, 9, 0, PI);
+
     rotateZ(PI/2);
+
     rotateY(rotY);
     rotateX(rotX);
 
@@ -124,5 +127,6 @@ class AccelData extends Telemetry {
     popMatrix();
     popMatrix();
     popMatrix();
+
   }
 }

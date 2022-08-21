@@ -9,7 +9,9 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
    *also a width, height, etc
    */
   public HudCompass(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID) {
+
     super(BaseX, BaseY, width, 100, pickables, pickID);
+
     this.compassStrip =loadImage("data/smartCompassStrip.png", "png");
     compassStrip.resize(width, 0);
     this.avgHeading = new MovingAverage(5);
