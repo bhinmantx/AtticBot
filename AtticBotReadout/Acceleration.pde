@@ -10,7 +10,7 @@ class AccelData extends Telemetry {
 
   AccelData(int BaseX, int BaseY, int w, int h, ArrayList<Pickable>  pickables, int pickID) {
     super(BaseX, BaseY, w, h, pickables, pickID);
-    dataFont = createFont("Georgia", 32);
+    dataFont = createFont("Georgia", 10);
     //350,384,0, 550, 384, 0
     horizonX1 = 350;
     horizonX2 = 384;
@@ -49,8 +49,10 @@ class AccelData extends Telemetry {
   void centerAndZoom(int newX, int newY) {
     this.DrawX = newX;
     this.DrawY = newY;
-    this.DrawX = width/2;
-    this.DrawY = height/2;
+
+ //   this.DrawX = width/2;
+  //  this.DrawY = height/2;
+
   }
 
   public void Tdraw() {
@@ -63,8 +65,6 @@ class AccelData extends Telemetry {
 
 
     pushMatrix();
-
-
     translate(DrawX, DrawY);
     this.drawBorder(this.w, this.h, color(255, 0, 255));
     fill(r, g, b);
@@ -81,8 +81,15 @@ class AccelData extends Telemetry {
     text("X: " + x, 5, 80 );
     text("Y: " + y, 5, 120 );
     text("Z: " + z, 5, 160);
+
+
     pushMatrix();
-    translate(200, 300, 100);
+    translate(200, 400, 100); //moving the 3d model
+    pushMatrix();
+
+    rotateX(mouseRotX);
+    rotateY(mouseRotY);
+
     strokeWeight(5);
     stroke(200, 0, 0);
     if (abs(avgX.average) > 3.0) {
@@ -91,7 +98,9 @@ class AccelData extends Telemetry {
     float rotX = map(avgX.average(), -9, 9, 0, PI);
     float rotY = map(avgY.average(), -9, 9, 0, PI);
     float rotZ = map(avgZ.average(), -9, 9, 0, PI);
-    rotateZ(PI/4);
+
+    rotateZ(PI/2);
+
     rotateY(rotY);
     rotateX(rotX);
 
@@ -116,6 +125,8 @@ class AccelData extends Telemetry {
     drawCylinder(30, 50.0, 50.0);
     popMatrix();
     popMatrix();
-    popMatrix(); //readout!
+    popMatrix();
+    popMatrix();
+
   }
 }
