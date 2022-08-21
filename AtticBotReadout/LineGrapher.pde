@@ -29,6 +29,7 @@ class LineGrapher {
     }
     noFill();
     stroke(0);
+    strokeWeight(1)
     beginShape();
     for (int i = 0; i<data.length; i++) {
       vertex(i, 350-data[i]);

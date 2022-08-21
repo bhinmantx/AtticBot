@@ -2,9 +2,9 @@
 Telemetry reader and some config for a Raspberry Pi based robot with several sensors.
  */
 
-import picking.*; //n.clavaud.free.fr/cv/ Nicolas Clavaud
 
 
+float mouseRotX, mouseRotY;
 String TelemetryServer = "http://192.168.50.209:8000";
 
 int NUM_TELEMS = 3; //really this should be just a constant and you enable various telemetry later
@@ -30,7 +30,7 @@ HeatVision heatVision;
 
 ArrayList<Pickable> pickables = new ArrayList<Pickable>();
 
-Picker picker; //for mouse clicks to center a bit of telemetry
+
 int lastPicked = -1;
 
 Telemetry[] T_Enabled =  new Telemetry[NUM_TELEMS]; //Since parts of the robot can be active or inactive here's an easier way to track and activate
@@ -77,7 +77,6 @@ void draw() {
     // thread("getNewImage"); //offline during testing
 
     lastImageGet = rightNow;
-
   }
 
   //AE35CamFeed = loadImage("http://192.168.50.99:8081/static/image.jpg"); //again, offline, requires motion OR the PTZ from arducam
@@ -103,6 +102,7 @@ void draw() {
     T_Enabled[i].update(telemetry_data);
     T_Enabled[i].Tdraw();
   }
+  grapher.Tdraw(mouseX);
 }
 
 
@@ -169,7 +169,8 @@ void drawCylinder( int sides, float r, float h) //This is for the wheels. Just n
 
 
 void mouseClicked() { //for the clicker
-
+  mouseRotX = 0;
+  mouseRotY = 0;
   int click_id = NUM_TELEMS+1;
   for (int j = 0; j < pickables.size(); j++) {
     Pickable part = pickables.get(j);
@@ -194,4 +195,11 @@ void mouseClicked() { //for the clicker
       lastPicked = -1;
     }
   }
+}
+
+
+void mouseDragged() {
+
+  mouseRotX = map(mouseY, 0, width/2, PI, 0);
+  mouseRotY = map(mouseX, 0, height/2, 0, PI);
 }

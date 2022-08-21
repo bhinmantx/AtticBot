@@ -79,7 +79,7 @@ class HeatVision extends Telemetry {
     tint(255, 255);
     image(this.cam, 0, 0);
 
-    tint(255, 127);
+    tint(255, 200);
 
     this.heatvision.updatePixels();
     this.heatvision.resize(this.heatSize, 0);
@@ -101,6 +101,8 @@ class HeatVision extends Telemetry {
       print("heatsize= " + this.heatSize);
       print(" heatX= " + this.heatX);
       println(" heatY= " + this.heatY);
+      print("MINTEMP: " + this.MINTEMP);
+      println(" MAXTEMP: " + this.MAXTEMP);
       switch(key) {
       case 'w':
         this.heatY++;
@@ -158,8 +160,25 @@ class HeatVision extends Telemetry {
         this.updateHeatSettings();
         break;
 
-
       case 'u':
+        this.MAXTEMP-=.3;
+        this.updateHeatSettings();
+        break;
+      case 'i':
+        MAXTEMP+=.3;
+        this.updateHeatSettings();
+        break;
+      case 'U':
+        this.MAXTEMP-=2.0;
+        this.updateHeatSettings();
+        break;
+      case 'I':
+        this.MAXTEMP+=2.0;
+        this.updateHeatSettings();
+        break;
+
+
+      case 'm':
         this.updateHeatSettings();
         break;
       }
