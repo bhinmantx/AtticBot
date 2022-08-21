@@ -26,9 +26,8 @@ int lastImageGet = 0;
 
 ServoArm armData;
 AccelData accelData;
-LineGrapher grapher;
 HeatVision heatVision;
-
+SystemHealth systemHealth;
 
 ArrayList<Pickable> pickables = new ArrayList<Pickable>();
 
@@ -44,9 +43,10 @@ void setup() {
   surface.setResizable(true);
   armData = new ServoArm(10, 10, 0, 128, 0);
   accelData = new AccelData(50, 150, 200, 300, pickables, 0);
-  grapher = new LineGrapher(100, 100, 100);
   compass = new HudCompass(0, 0, pickables, 1);
+
   heatVision = new HeatVision(width/2, 200, this, pickables, 2);
+  systemHealth = new SystemHealth(100, 100, pickables, 3);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
@@ -78,7 +78,6 @@ void draw() {
     // thread("getNewImage"); //offline during testing
 
     lastImageGet = rightNow;
-
   }
 
   //AE35CamFeed = loadImage("http://192.168.50.99:8081/static/image.jpg"); //again, offline, requires motion OR the PTZ from arducam
@@ -104,9 +103,7 @@ void draw() {
     T_Enabled[i].update(telemetry_data);
     T_Enabled[i].Tdraw();
   }
-
-  grapher.Tdraw(mouseX);
-
+  systemHealth.update(telemetry_data);
 }
 
 

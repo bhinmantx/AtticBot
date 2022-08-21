@@ -256,9 +256,9 @@ class hmc5883l:
 def getSystemStats():
     system_stats = {}
     cpu_temp = CPUTemperature().temperature
-    cpu_load = cpu = str(psutil.cpu_percent()) + '%'
-
-    system_stats["cpu_tempt"] = cpu_temp
+    #cpu_load = cpu = str(psutil.cpu_percent()) + '%'
+    cpu_load = cpu = float(psutil.cpu_percent())
+    system_stats["cpu_temp"] = cpu_temp
     system_stats["cpu_load"] = cpu_load
 
     return system_stats
