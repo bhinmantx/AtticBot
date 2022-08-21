@@ -18,15 +18,8 @@ import busio
 
 import adafruit_mlx90640 
 
-
-
-#from gpiozero import LoadAverage
 from gpiozero import CPUTemperature
 
-
-
-
-#cap = cv2.VideoCapture(0)
 
 
 
@@ -276,7 +269,6 @@ compass = hmc5883l(gauss = 4.7, declination = (-2,5))
 
 
 class TestHandler(http.server.SimpleHTTPRequestHandler):
-    """The test example handler."""
     lastUpdate = 0
     def do_POST(self):
         global sensor_data_json
@@ -322,14 +314,7 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         global sensor_data_json
         global heat_data
-        #global heading_accel
-        
-        
-        #print(self.headers)
-        #length = int(self.headers.get_all('content-length')[0])
-        #print(self.headers.get_all('content-length'))
-        #data_string = self.rfile.read(length)
-        #print(data_string)
+
         if self.path == '/TELEMETRY':
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -345,24 +330,11 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
                 'system_stats': system_stats
 
             }
-            #sensor_data_json = json.dumps(sensor_data_json)
-            #outgoing_json = json.dumps(sensor_data_json)
+
             outgoing_json = json.dumps(heading_accel)
-            #print(sensor_data_json)
             self.wfile.write(outgoing_json.encode())
 
 
-        '''if self.path.startswith('/image'):
-            self.send_response(200)
-            self.send_header("Content-type", "image/jpeg")
-            self.end_headers()
-            ret, frame = cap.read()
-            _, jpg = cv2.imencode(".jpg", frame)
-            self.wfile.write(jpg)
-        else:
-            self.send_response(404)'''        
-       
-        #self.wfile.write(sensor_data_json.encode())
 
         if self.path == '/HEAT': 
             self.send_response(200)
@@ -378,13 +350,6 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/image.jpg':
             self.send_response(404)
             self.end_headers()
-            '''self.send_response(200)
-            self.send_header("Content-type", "image/jpeg")
-            self.end_headers()
-            ret, frame = cap.read()
-            _, jpg = cv2.imencode(".jpg", frame)
-            self.wfile.write(jpg)
-            '''
         if self.path == '/accel':
             #print(str(int(LoadAverage(minutes=1).load_average*100))+"%")
             self.send_response(200)
