@@ -25,28 +25,30 @@ class Telemetry {
   int BaseX, BaseY, DrawX, DrawY; // saving where we want to draw, and where to start our draw
   int r, g, b; //background colors for the shape
   int w, h; //we draw a background shape
-  Picker picker;
+  ArrayList<Pickable> picker;
   int pickID;
-  Telemetry(int BaseX, int BaseY, int r, int g, int b) {
+  boolean isZoomed;
+  Telemetry(int BaseX, int BaseY) {
     this.BaseX = BaseX;
     this.BaseY = BaseY;
     this.DrawX = BaseX;
     this.DrawY = BaseY;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+
+    this.isZoomed = false;
   }
 
-  Telemetry(int BaseX, int BaseY, int r, int g, int b, Picker picker, int pickID) {
+  Telemetry(int BaseX, int BaseY, int w, int h, ArrayList<Pickable> picker, int pickID) {
     this.BaseX = BaseX;
     this.BaseY = BaseY;
     this.DrawX = BaseX;
     this.DrawY = BaseY;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    this.w = w;
+    this.h = h;
     this.picker = picker;
     this.pickID = pickID;
+    this.isZoomed = false;
+    Pickable picked = new Pickable(this.BaseX, this.BaseY, this.w, this.h, this.pickID);
+    pickables.add(picked);
   }
 
 
@@ -55,196 +57,29 @@ class Telemetry {
   void update(JSONObject data) {
   }
 
-  void centerAndZoom(int newX, int newY) {   ///if the
-    println("I will set my bases to these!");
+  void centerAndZoom(int newX, int newY) {
+    this.isZoomed = true;
     this.DrawX = newX;
     this.DrawY = newY;
   }
 
   void unCenterAndUnZoom() {
-    println("UNCENTER AND ZOOOOM");
+    this.isZoomed = false;
     this.DrawX = this.BaseX;
     this.DrawY = this.BaseY;
   }
 
-  void draw () {
-    pushMatrix();
-    fill(128, 0, 0, 128);
-    w = 100;
-    h = 100;
-    rect(DrawX, DrawY, w, h);
-    popMatrix();
+  public void Tdraw () {
+    this.drawBorder(this.w, this.h, 128);
   }
-}
-
-
-//We know that servo arm stuff is in an array
-class ServoArm extends Telemetry {
-  int servoAPos, servoBPos, servoCPos, servoDPos;
-  PFont dataFont;
-  int lastUpdate;
-  ServoArm(int BaseX, int BaseY, int r, int g, int b) {
-    super(BaseX, BaseY, r, g, b);
-    dataFont = createFont("Georgia", 32);
+  void drawBorder(int borderWidth, int borderHeight, int borderColor) {
+    fill(borderColor);
+    stroke(153);
+    rect(0, 0, borderWidth, borderHeight);
   }
-  //A=0
-  void update(JSONObject dataObj, int update) {
-    JSONArray data = dataObj.getJSONArray("servoSettings");
-    servoAPos = data.getInt(0);
-    servoBPos = data.getInt(1);
-    servoCPos = data.getInt(2);
-    servoDPos = data.getInt(3);
-    lastUpdate = update;
-  }
-  void draw() {
-    Boolean showWarning = false;
-    if (millis() - lastUpdate > 5000) {
-      // showWarning = true;
-    }
-    pushMatrix();
-    translate(DrawX, DrawY);
-    fill(r, g, b);
-    //textSize(30);
-    textFont(dataFont);
-    w = 300;
-    h = 240; //should be like, number servos time font size
-    rect(0, 0, w, h);
-    if (showWarning) {
-      fill(255, 0, 0);
-    } else {
-      fill(255, 255, 255);
-    }
-    text("Servo Arm Vals", 5, 40 );
-    text("ServoA: " + servoAPos, 5, 80 );
-    text("ServoB: " + servoBPos, 5, 120 );
-    text("ServoC: " + servoCPos, 5, 160);
-    text("ServoD: " + servoDPos, 5, 200 );
-    popMatrix();
-  }
-}
+    void drawBorder(int borderWidth, int borderHeight) {
 
-
-
-class AccelData extends Telemetry {
-  float x, y, z;
-  PFont dataFont;
-  int lastUpdate;
-  int horizonX1, horizonX2, horizonY1, horizonY2; //for the attitude line
-  MovingAverage avgX;
-  MovingAverage avgY;
-  MovingAverage avgZ;
-  float correctX, correctY, correctZ;
-
-  AccelData(int BaseX, int BaseY, int r, int g, int b, Picker picker, int pickID) {
-    super(BaseX, BaseY, r, g, b, picker, pickID);
-    dataFont = createFont("Georgia", 32);
-    //350,384,0, 550, 384, 0
-    horizonX1 = 350;
-    horizonX2 = 384;
-    horizonY1 = 550;
-    horizonY2 = 384;
-    avgX = new MovingAverage(5);
-    avgY = new MovingAverage(5);
-    avgZ = new MovingAverage(5);
-  }
-  //A=0
-  void calibrate() {
-    correctX = avgX.average();
-    correctY = avgY.average();
-    correctZ = avgZ.average();
-  }
-  void update(JSONObject data, int update) {
-    x = data.getFloat("x");
-    y = data.getFloat("y");
-    z = data.getFloat("z");
-
-
-    avgX.nextValue(x - correctX);
-    avgY.nextValue(y - correctY);
-    avgZ.nextValue(z - correctZ);
-    lastUpdate = update;
-  }
-
-  float getX() {
-
-    return x;
-  }
-  void centerAndZoom(int newX, int newY) {   ///if the
-    this.DrawX = newX;
-    this.DrawY = newY;
-    this.DrawX = width/2;
-    this.DrawY = height/2;
-  }
-
-  void draw() {
-    Boolean showWarning = false;
-    Boolean tiltWarning = false;
-    if (millis() - lastUpdate > 5000) {
-      // showWarning = true;
-    }
-
-    pushMatrix();
-    translate(DrawX, DrawY);
-    fill(r, g, b);
-    //textSize(30);
-    textFont(dataFont);
-    w = 300;
-    h = 240; //should be like, number servos time font size
-    this.picker.start(this.pickID);
-    rect(0, 0, w, h);
-
-    if (showWarning) {
-      //fill(255, 0, 0);
-    } else {
-      fill(255, 255, 255);
-    }
-    text("AccelReading", 5, 40 );
-    text("X: " + x, 5, 80 );
-    text("Y: " + y, 5, 120 );
-    text("Z: " + z, 5, 160);
-    popMatrix();
-    pushMatrix();
-
-    push();
-    translate(300, 468, 100);
-    //    translate(512, 368, 100);
-    strokeWeight(5);
-    stroke(200, 0, 0);
-    if (abs(avgX.average) > 3.0) {
-      tiltWarning = true;
-    }
-    float rotX = map(avgX.average(), -9, 9, 0, PI);
-    float rotY = map(avgY.average(), -9, 9, 0, PI);
-    float rotZ = map(avgZ.average(), -9, 9, 0, PI);
-    rotateZ(PI/2);
-    rotateY(rotY);
-    rotateX(rotX);
-
-    stroke(255);
-    if (tiltWarning) {
-      stroke(255, 0, 0);
-    }
-    fill(127);
-    this.picker.start(this.pickID);
-    box(160, 80, 200);
-
-    pushMatrix();
-
-    translate(20, 50, 100);
-    pushMatrix();
-    push();
-    float spin = map(mouseX, 0, width, 0.0, 2*3.1415);
-    rotateZ(spin);
-    drawCylinder(30, 50.0, 50.0);
-    pop();
-    popMatrix();
-    translate(-100, 0, 0);
-    drawCylinder(30, 50.0, 50.0);
-    popMatrix();
-
-
-    pop();
-    popMatrix();
-    this.picker.stop();
+    stroke(153);
+    rect(0, 0, borderWidth, borderHeight);
   }
 }

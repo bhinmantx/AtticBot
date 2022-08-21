@@ -2,25 +2,16 @@
 import http.requests.*;
 import processing.video.*;
 
-
-
-
-
-
-class HeatVision {
-  int BaseX, BaseY, DrawX, DrawY;
+class HeatVision extends Telemetry {
   int heatX, heatY, heatSize; //position of the heat image
   float MINTEMP, MAXTEMP;
-  PApplet applet; //For camera initialization!
   JSONObject heat_data;
   JSONArray heat_readings;
-  Picker picker;
-  int pickID;
+  PApplet applet; //For camera initialization!
   Capture cam;
   PImage heatvision;
-  HeatVision(int BaseX, int BaseY, PApplet applet) {
-    this.BaseX = BaseX;
-    this.BaseY = BaseY;
+  HeatVision(int BaseX, int BaseY, PApplet applet, ArrayList<Pickable> pickables, int pickID) {
+    super(BaseX, BaseY, 100, 100, pickables, pickID);
     this.heatX = -594;
     this.heatY = 140;
     this.heatSize = 484;
@@ -45,23 +36,20 @@ class HeatVision {
 
   void updateHeatSettings() { //I used to pass the new min/max temp values here
     try {
-      PostRequest post = new PostRequest("http://192.168.50.99:8000/HEAT"); //we should be passing this from constructor
+      PostRequest post = new PostRequest(TelemetryServer + "/HEAT"); //we should be passing this from constructor
       post.addHeader("Content-Type", "application/json");
       post.addData("{\"MINTEMP\":" + this.MINTEMP + ",\"MAXTEMP\":"  + this.MAXTEMP+ "}"); //cheater cheater
       post.send(); //send request
     }
     catch(Exception e) {
       println("trouble updating temps");
-      // println(post.getContent()); //print response //find out how to pass stuff to the exception!
     }
   }
 
-  PImage Update() {
+  void update(JSONObject ignoring) {
     updateHeatOverlayPosition();
-
-    
     try {
-      this.heat_data  = loadJSONObject("http://192.168.50.99:8000/HEAT"); //again we should really be passing this URL
+      this.heat_data  = loadJSONObject(TelemetryServer + "/HEAT"); //again we should really be passing this URL
       this.heat_readings = heat_data.getJSONArray("readings");
       this.heatvision = createImage(32, 24, RGB);
       this.heatvision.loadPixels();
@@ -74,33 +62,51 @@ class HeatVision {
       if (this.cam.available() == true) {
         this.cam.read();
       }
-      //  tint(255, 127);
     }
     catch(Exception e) {
       println("trouble getting data");
     }
-    return this.heatvision;
+    return;
   }
 
-  void draw() {
+  public void Tdraw() {
     pushMatrix();
-    translate(this.BaseX, this.BaseY);
-    tint(255, 127);
+    translate(this.DrawX, this.DrawY);
+    //DISABLED//this.picker.start(this.pickID);
+    pushMatrix();
+    this.drawBorder(this.cam.width, this.cam.height, color(255, 255, 255));
+    popMatrix();
+    tint(255, 255);
     image(this.cam, 0, 0);
+
+
+    tint(255, 200);
+
+
     this.heatvision.updatePixels();
     this.heatvision.resize(this.heatSize, 0);
+    pushMatrix();
     scale(-1, 1);
     image(this.heatvision, this.heatX, this.heatY);
+    popMatrix();
+    //DISABLED//this.picker.stop();
     popMatrix();
   }
 
   void updateHeatOverlayPosition() {
     //GOTCHA: if you have a modifier key depressed (like shift, or control) but not a "regular" key it will still act as though a "regular" key is depressed.
     //This can be helpful if you want a change to keep happening and only want to hold "shift"
+    if (!this.isZoomed) {
+      return;
+    }
     if (keyPressed) {
       print("heatsize= " + this.heatSize);
       print(" heatX= " + this.heatX);
       println(" heatY= " + this.heatY);
+
+      print("MINTEMP: " + this.MINTEMP);
+      println(" MAXTEMP: " + this.MAXTEMP);
+
       switch(key) {
       case 'w':
         this.heatY++;
@@ -158,8 +164,25 @@ class HeatVision {
         this.updateHeatSettings();
         break;
 
-
       case 'u':
+        this.MAXTEMP-=.3;
+        this.updateHeatSettings();
+        break;
+      case 'i':
+        MAXTEMP+=.3;
+        this.updateHeatSettings();
+        break;
+      case 'U':
+        this.MAXTEMP-=2.0;
+        this.updateHeatSettings();
+        break;
+      case 'I':
+        this.MAXTEMP+=2.0;
+        this.updateHeatSettings();
+        break;
+
+
+      case 'm':
         this.updateHeatSettings();
         break;
       }

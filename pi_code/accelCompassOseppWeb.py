@@ -11,14 +11,20 @@ import requests
 import os
 import math
 
+import psutil
+
 import argparse
 import busio
 
 import adafruit_mlx90640 
 
 
-from gpiozero import LoadAverage
-#import cv2
+
+#from gpiozero import LoadAverage
+from gpiozero import CPUTemperature
+
+
+
 
 #cap = cv2.VideoCapture(0)
 
@@ -114,7 +120,9 @@ for i in range(COLORDEPTH):
 # initialize the sensor
 mlx = adafruit_mlx90640.MLX90640(i2c)
 print("MLX addr detected on I2C, Serial #", [hex(i) for i in mlx.serial_number])
-mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_8_HZ
+
+mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
+
 print(mlx.refresh_rate)
 print("Refresh rate: ", pow(2, (mlx.refresh_rate - 1)), "Hz")
 
@@ -157,6 +165,11 @@ sensor_data_json = {
 accel_data = {
     'x':0,'y':0,'z':0
 }
+
+compass_data = {
+    'heading':0,'other':0
+}
+
 
 sincelastUpdate = round(time.time() * 1000)
 prev_update_time = 0
@@ -246,9 +259,16 @@ class hmc5883l:
                "Heading: " + self.degrees(self.heading()) + "\n"
 
 
-compass_data = {
-    'heading':0,'other':0
-}
+    
+def getSystemStats():
+    system_stats = {}
+    cpu_temp = CPUTemperature().temperature
+    cpu_load = cpu = str(psutil.cpu_percent()) + '%'
+
+    system_stats["cpu_tempt"] = cpu_temp
+    system_stats["cpu_load"] = cpu_load
+
+    return system_stats
 
 
 
@@ -318,9 +338,12 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             compass_data['heading'] = compass.degrees(compass.heading())[0]
             accel_data['x'], accel_data['y'], accel_data['z'] = lis3dh.acceleration
 
+            system_stats = getSystemStats()
             heading_accel = {
                 'compass_data':compass_data,
-                'accel_data': accel_data
+                'accel_data': accel_data,
+                'system_stats': system_stats
+
             }
             #sensor_data_json = json.dumps(sensor_data_json)
             #outgoing_json = json.dumps(sensor_data_json)
@@ -333,10 +356,8 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "image/jpeg")
             self.end_headers()
-
             ret, frame = cap.read()
             _, jpg = cv2.imencode(".jpg", frame)
-
             self.wfile.write(jpg)
         else:
             self.send_response(404)'''        
@@ -360,10 +381,8 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             '''self.send_response(200)
             self.send_header("Content-type", "image/jpeg")
             self.end_headers()
-
             ret, frame = cap.read()
             _, jpg = cv2.imencode(".jpg", frame)
-
             self.wfile.write(jpg)
             '''
         if self.path == '/accel':
