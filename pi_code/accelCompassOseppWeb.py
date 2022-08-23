@@ -19,6 +19,8 @@ import busio
 import adafruit_mlx90640 
 
 from gpiozero import CPUTemperature
+import adafruit_sht31d
+
 
 
 
@@ -34,7 +36,7 @@ MINTEMP = 20.0
 # high range of the sensor (this will be white on the screen)
 MAXTEMP = 50.0
 
-
+temperature_humidity = adafruit_sht31d.SHT31D(i2c)
 
 n = len(sys.argv)
 
@@ -285,9 +287,6 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.end_headers()
             self.flush_headers()
-            #sensor_data = {'Arch': 'pacman',
-            #               'Gentoo': 'emerge'
-            #}
             sensor_data_json = json.loads(data_string)
             sensor_data_json["lastUpdate"] = lastUpdate
             #self.wfile.write(sensor_data_json.encode())
@@ -322,12 +321,19 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             self.flush_headers()
             compass_data['heading'] = compass.degrees(compass.heading())[0]
             accel_data['x'], accel_data['y'], accel_data['z'] = lis3dh.acceleration
-
+             
+            humidity = temperature_humidity.relative_humidity
+            
+            ambient = temperature_humidity.temperature
+            ambient_f = ambient * 9/5 + 32
             system_stats = getSystemStats()
             heading_accel = {
                 'compass_data':compass_data,
                 'accel_data': accel_data,
-                'system_stats': system_stats
+                'system_stats': system_stats,
+                'humidity': humidity,
+                'ambient': ambient,
+                'ambient_f': ambient_f
 
             }
 

@@ -29,11 +29,12 @@ class LineGrapher {
      line(0, i*4, graphWidth*4, i*4);
      }*/
     noFill();
-    stroke(0);
+    stroke(5*gotX, 0, 0);
     strokeWeight(1);
     beginShape();
+
     for (int i = 0; i<data.length; i++) {
-      stroke(data[i], 0, 0);
+      stroke(data[i]*5, 0, 0);
       vertex(i, 150-data[i]);
     }
     endShape();
@@ -43,5 +44,20 @@ class LineGrapher {
     }
     //    data[data.length-1]=gotX*4 + graphHeight/2;
     data[data.length-1]=gotX;
+  }
+}
+
+
+class BarGrapher {
+
+  color gcolor;
+
+  public BarGrapher(int BaseX, int BaseY, int graphWidth, int graphHeight) {
+    
+    
+    
+  }
+
+  public void update() {
   }
 }

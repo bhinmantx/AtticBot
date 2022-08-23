@@ -23,13 +23,15 @@ class SystemHealth extends Telemetry {
 
       this.cpuLoadG.Tdraw(this.cpu_load);
       fill(0, 0, 0);
-      text("CPU Load", 5, 0 );
+      text("CPU Load", 5, 20 );  
+      text(this.cpu_load, 5, 34 );      
       pushMatrix();
       translate(250, 0, 0);
 
       this.cpuTempG.Tdraw(this.cpu_temp);
       fill(0, 0, 0);
-      text("CPU Temperature", 5, 0 );
+      text("CPU Temperature", 5, 20 );
+      text(this.cpu_temp, 5, 34 );
       popMatrix();
       popMatrix();
     }

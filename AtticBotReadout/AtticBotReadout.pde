@@ -46,7 +46,7 @@ void setup() {
   compass = new HudCompass(0, 0, pickables, 1);
 
   heatVision = new HeatVision(width/2, 200, this, pickables, 2);
-  systemHealth = new SystemHealth(100, 100, pickables, 3);
+  systemHealth = new SystemHealth(100, 700, pickables, 3);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
