@@ -137,7 +137,6 @@ def get_heat():
     except ValueError:
         print("exception")  # these happen, no biggie - retry
 
-    print("Read 2 frames in %0.2f s" % (time.monotonic() - stamp))
 
     pixels = [0] * 768
     for i, pixel in enumerate(frame):

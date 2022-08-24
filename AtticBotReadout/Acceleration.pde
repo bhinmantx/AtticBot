@@ -66,7 +66,7 @@ class AccelData extends Telemetry {
 
     pushMatrix();
     translate(DrawX, DrawY);
-    this.drawBorder(this.w, this.h, color(255, 0, 255));
+    this.drawBorder(this.w, this.h, color(0, 0, 255));
     fill(r, g, b);
 
     textFont(dataFont);
@@ -78,9 +78,9 @@ class AccelData extends Telemetry {
       fill(255, 255, 255);
     }
     text("AccelReading", 5, 20 );
-    text("X: " + x, 5, 40 );
-    text("Y: " + y, 5, 60 );
-    text("Z: " + z, 5, 80);
+    text("X: " + setFloatto(x,10000), 5, 40 );
+    text("Y: " + setFloatto(y,10000), 5, 60 );
+    text("Z: " + setFloatto(z,10000), 5, 80);
 
 
     pushMatrix();
@@ -95,6 +95,9 @@ class AccelData extends Telemetry {
     if (abs(avgX.average) > 3.0) {
       tiltWarning = true;
     }
+    
+ 
+    
     float rotX = map(avgX.average(), -9, 9, 0, PI);
     float rotY = map(avgY.average(), -9, 9, 0, PI);
     float rotZ = map(avgZ.average(), -9, 9, 0, PI);

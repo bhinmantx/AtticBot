@@ -52,16 +52,33 @@ class PowerReadings extends Telemetry {
   PFont dataFont;
   Chart vNegChart, shuntCurrChart;
 
-  public PowerReadings(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID) {
+  public PowerReadings(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID, ControlP5 cp5, PApplet applet) {
     super(BaseX, BaseY, 100, 100, pickables, pickID);
     this.cpuLoadG = new LineGrapher(100, 100, 100);
     this.cpuTempG = new LineGrapher(100, 100, 100);
     this.dataFont = createFont("Montserrat SemiBold", 16);
+
+    this.shuntCurrChart   = cp5.addChart("currflow")
+      .setPosition(600, 730)
+      .setSize(100, 100)
+      .setRange(0, 5000)
+      ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
+      .setView(Chart.AREA)
+      .setStrokeWeight(1.5)
+      .setColorCaptionLabel(color(20))
+      .setColorValue(color(255))
+      .setColorActive(color(155))
+      .setColorForeground(color(155))
+      .setLabel("Current Flow")
+      .setColorBackground(color(0, 255, 0))
+      ;
+    this.shuntCurrChart.addDataSet("shunt_curr_data");
+    this.shuntCurrChart.setData("shunt_curr_data", new float[100]);
   }
 
-  public void addCharts(Chart vNegChart, Chart shuntCurrChart) {
+  public void addCharts(Chart vNegChart) {
     this.vNegChart = vNegChart;
-    this.shuntCurrChart = shuntCurrChart;
+    //this.shuntCurrChart = shuntCurrChart;
   }
 
   public void update(JSONObject data) {
@@ -82,7 +99,7 @@ class PowerReadings extends Telemetry {
       this.vNegChart.setColors("incoming", color(30, 255, 20));
       this.vNegChart.push("incoming", this.v_neg);
 
-
+      this.shuntCurrChart.setPosition(this.DrawX, this.DrawY);
       this.shuntCurrChart.push("shunt_curr_data", this.shunt_curr);
       popMatrix();
     }
@@ -107,8 +124,8 @@ class AtmosphereReading extends Telemetry {
   PFont dataFont;
   Chart vNegChart, shuntCurrChart;
 
-  public AtmosphereReading(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID) {
-    super(BaseX, BaseY, 100, 100, pickables, pickID);
+  public AtmosphereReading(int BaseX, int BaseY, int w, int h, ArrayList<Pickable> pickables, int pickID) {
+    super(BaseX, BaseY, w, h, pickables, pickID);
     this.dataFont = createFont("Montserrat SemiBold", 10);
   }
 
@@ -118,20 +135,25 @@ class AtmosphereReading extends Telemetry {
       this.f_temp = data.getFloat("ambient_f");
       this.c_temp = data.getFloat("ambient");
       this.humidity = data.getFloat("humidity");
-
-
-      push();
-      textFont(this.dataFont);
-      translate(this.DrawX, this.DrawY);
-      this.f_temp = setFloatto2(this.f_temp);
-      text("Amient Temp: " + this.f_temp, 0, 0 );
-      translate(0, 15);
-      this.humidity = setFloatto2(this.humidity);
-      text("Humidity: " + this.humidity, 0, 0 );
-      pop();
     }
     catch(Exception e) {
       println("Problem with system health " + e);
     }
+  }
+  
+  public void Tdraw() {
+    push();
+    textFont(this.dataFont);
+    translate(this.DrawX, this.DrawY);
+    this.drawBorder(this.w, this.h, color(255, 0, 255));
+    fill(0);
+    translate(5, 15);
+    this.f_temp = setFloatto(this.f_temp, 100);
+    text("Amient Temp: " + this.f_temp, 0, 0 );
+    translate(0, 15);
+    this.humidity = setFloatto(this.humidity, 100);
+    text("Humidity: " + this.humidity, 0, 0 );
+    pop();
+    AdjustPosition();
   }
 }

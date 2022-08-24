@@ -70,16 +70,54 @@ class Telemetry {
   }
 
   public void Tdraw () {
+    pushMatrix();
+    translate(this.DrawX, this.DrawY, 0);
     this.drawBorder(this.w, this.h, 128);
+    popMatrix();
+    this.AdjustPosition();
   }
   void drawBorder(int borderWidth, int borderHeight, int borderColor) {
+    //println("drawing border" + this.pickID);
     fill(borderColor);
     stroke(153);
     rect(0, 0, borderWidth, borderHeight);
   }
-    void drawBorder(int borderWidth, int borderHeight) {
 
-    stroke(153);
-    rect(0, 0, borderWidth, borderHeight);
+
+  void AdjustPosition() {
+    //GOTCHA: if you have a modifier key depressed (like shift, or control) but not a "regular" key it will still act as though a "regular" key is depressed.
+    //This can be helpful if you want a change to keep happening and only want to hold "shift"
+    if (!this.isZoomed) {
+      return;
+    }
+    if (keyPressed && this.isZoomed) {
+      switch(key) {
+      case 'w':
+        this.DrawY--;
+        break;
+      case 's':
+        this.DrawY++;
+        break;
+      case 'd':
+        this.DrawX++;
+        break;
+      case 'a':
+        this.DrawX--;
+        break;
+
+      case 'W':
+        this.DrawY+= 10;
+        break;
+      case 'S':
+        this.DrawY-= 10;
+        break;
+      case 'D':
+        this.DrawX+= 10;
+        break;
+      case 'A':
+        this.DrawX-= 10;
+        break;
+      }
+    }
   }
 }

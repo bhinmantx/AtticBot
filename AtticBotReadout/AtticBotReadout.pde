@@ -9,7 +9,7 @@ Chart shuntCurrChart;
 
 float mouseRotX, mouseRotY;
 String TelemetryServer = "http://192.168.50.209:8000";
-int NUM_TELEMS = 3; //really this should be just a constant and you enable various telemetry later
+int NUM_TELEMS = 6; //really this should be just a constant and you enable various telemetry later
 
 JSONObject attic_bot_data, accel_data, compass_data, telemetry_data;
 JSONArray arm_data;
@@ -18,6 +18,7 @@ PImage AE35CamFeed, MainDisplay, bgImage;
 boolean NewImageAvailable = false;
 int imageDelay = 200; //to slow down requests to the pi
 int lastImageGet = 0;
+int w, h; //for resize detection
 
 ServoArm armData;
 AccelData accelData;
@@ -36,28 +37,34 @@ Telemetry[] T_Enabled =  new Telemetry[NUM_TELEMS]; //Since parts of the robot c
 
 
 void setup() {
-  size(1280, 1024, P3D);
+  size(1280, 900, P3D);
   surface.setTitle("Attic Bot Telemetry");
+  w = width;
+  h = height;
   surface.setResizable(true);
+  cp5 = new ControlP5(this);
   armData = new ServoArm(10, 10, 0, 128, 0);
   accelData = new AccelData(50, 150, 100, 120, pickables, 0);
   compass = new HudCompass(0, 0, pickables, 1);
-  powerReadings = new PowerReadings(150, 150, pickables, 6);
   heatVision = new HeatVision(width/2, 200, this, pickables, 2);
+  atmosphereReading = new AtmosphereReading(50, 500, 120, 80, pickables, 3);
+  powerReadings = new PowerReadings(150, 150, pickables, 4, cp5, this);
+  systemHealth = new SystemHealth(100, 700, pickables, 5);
 
-  atmosphereReading = new AtmosphereReading(50, 500, pickables, 7);
-  systemHealth = new SystemHealth(100, 700, pickables, 3);
+
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
   MainDisplay = AE35CamFeed;
   //thread("getNewImage"); //Parts of the Pi side are still offline. Should add the threading to its own "Enabled" array
   //thread("updateHeatVision");
-  println("56");
+
   T_Enabled[0] = accelData;
   T_Enabled[1] = compass ;
   T_Enabled[2] = heatVision ;
+  T_Enabled[3] = atmosphereReading ;
+  T_Enabled[4] = powerReadings;
+  T_Enabled[5] = systemHealth;
 
-  cp5 = new ControlP5(this);
   vPosChart = cp5.addChart("dataflow")
     .setPosition(750, 730)
     .setSize(100, 100)
@@ -68,27 +75,27 @@ void setup() {
     .setLabel("Shunt Voltage")
     .setColorCaptionLabel(color(40))
     ;
-  shuntCurrChart  = cp5.addChart("currflow")
-    .setPosition(600, 730)
-    .setSize(100, 100)
-    .setRange(0, 6)
-    ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
-    .setView(Chart.AREA)
-    .setStrokeWeight(1.5)
-    .setColorCaptionLabel(color(20))
-    .setColorValue(color(255))
-    .setColorActive(color(155))
-    .setColorForeground(color(155))
-    .setLabel("Current Flow")
-    .setColorBackground(color(0, 255, 0))
-    ;
+
 
 
   vPosChart.addDataSet("incoming");
   vPosChart.setData("incoming", new float[100]);
-  shuntCurrChart.addDataSet("shunt_curr_data");
-  shuntCurrChart.setData("shunt_curr_data", new float[100]);
-  powerReadings.addCharts(vPosChart, shuntCurrChart);
+
+  powerReadings.addCharts(vPosChart);
+  //deal with resize
+  registerMethod("pre", this);
+}
+
+
+void pre() {
+  println("was this checked?");
+  if (w != width || h != height) {
+    // Sketch window has resized
+    w = width;
+    h = height;
+    compass.wasResized();
+    // Do what you need to do here
+  }
 }
 
 
@@ -120,10 +127,7 @@ void draw() {
     }
   }
   try {
-    int t =  millis();
     telemetry_data = loadJSONObject(TelemetryServer + "/TELEMETRY");
-    int s = millis();
-    // println(s - t);
   }
   catch(Exception e) {
     println("trouble getting data");
@@ -133,9 +137,9 @@ void draw() {
     T_Enabled[i].update(telemetry_data);
     T_Enabled[i].Tdraw();
   }
-  systemHealth.update(telemetry_data);
-  atmosphereReading.update(telemetry_data);
-  powerReadings.update(telemetry_data);
+  // systemHealth.update(telemetry_data);
+  //atmosphereReading.update(telemetry_data);
+  // powerReadings.update(telemetry_data);
 }
 
 
@@ -207,10 +211,12 @@ void mouseClicked() { //for the clicker
   mouseRotY = 0;
 
   int click_id = NUM_TELEMS+1;
-  for (int j = 0; j < pickables.size(); j++) {
-    Pickable part = pickables.get(j);
+
+  for (int q = 0; q < pickables.size() - 1; q++) {
+    Pickable part = pickables.get(q);
     if (part.WasClicked(mouseX, mouseY)) {
-      click_id = j;
+      click_id = q;
+      break;
     }
   }
   if (click_id > NUM_TELEMS) { //outside of zones?
@@ -240,9 +246,9 @@ void mouseDragged() {
 }
 
 
-float setFloatto2(float value){
-      value = value * 100;
-      int value_int = int(value);
-      value = float(value_int/100);
-      return value;
+float setFloatto(float value, int modification) {
+  value = value *  modification;
+  int value_int = int(value);
+  value = float(value_int/ modification);
+  return value;
 }

@@ -12,8 +12,8 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
 
     super(BaseX, BaseY, width, 100, pickables, pickID);
 
-    this.compassStrip =loadImage("data/smartCompassStrip.png", "png");
-    compassStrip.resize(width, 0);
+    this.compassStrip =loadImage("data/compass_stripHD.png", "png");
+    this.compassStrip.resize(width, 0);
     this.avgHeading = new MovingAverage(5);
   }
 
@@ -24,6 +24,11 @@ class HudCompass extends Telemetry { ////assuming a top center? I guess?
     catch(Exception e) {
       println("Problem with compass heading");
     }
+  }
+  
+  public void wasResized() {
+    println("was affected?");
+    this.compassStrip.resize(width, 0);
   }
 
   public void setHeading(float heading) { //For direct setting compass for testing
