@@ -17,14 +17,12 @@ class SystemHealth extends Telemetry {
       this.cpu_load =  data.getJSONObject("system_stats").getFloat("cpu_load");
       pushMatrix();
       textFont(this.dataFont);
-
-
       translate(this.DrawX, this.DrawY, 0);
 
       this.cpuLoadG.Tdraw(this.cpu_load);
       fill(0, 0, 0);
-      text("CPU Load", 5, 20 );  
-      text(this.cpu_load, 5, 34 );      
+      text("CPU Load", 5, 20 );
+      text(this.cpu_load, 5, 34 );
       pushMatrix();
       translate(250, 0, 0);
 
@@ -44,21 +42,26 @@ class SystemHealth extends Telemetry {
 
 
 /*
-"voltage_data": 
-{"V_Pos", V_Neg": 7.736, "Shunt_Volt": 0.0144, "Shunt_Curr": 0.1726, "Power_Calc": 1.33523, "Power_Regi": 1.35}
-*/
+"voltage_data":
+ {"V_Pos", V_Neg": 7.736, "Shunt_Volt": 0.0144, "Shunt_Curr": 0.1726, "Power_Calc": 1.33523, "Power_Regi": 1.35}
+ */
 
 class PowerReadings extends Telemetry {
-  float v_neg, v_pos, shunt_volt,shunt_curr,power_calc,power_reg;
+  float v_neg, v_pos, shunt_volt, shunt_curr, power_calc, power_reg;
   LineGrapher cpuLoadG, cpuTempG;
   PFont dataFont;
+  Chart vNegChart, shuntCurrChart;
 
   public PowerReadings(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID) {
-
     super(BaseX, BaseY, 100, 100, pickables, pickID);
     this.cpuLoadG = new LineGrapher(100, 100, 100);
     this.cpuTempG = new LineGrapher(100, 100, 100);
     this.dataFont = createFont("Montserrat SemiBold", 16);
+  }
+
+  public void addCharts(Chart vNegChart, Chart shuntCurrChart) {
+    this.vNegChart = vNegChart;
+    this.shuntCurrChart = shuntCurrChart;
   }
 
   public void update(JSONObject data) {
@@ -71,24 +74,61 @@ class PowerReadings extends Telemetry {
       this.v_neg = data.getJSONObject("voltage_data").getFloat("V_Neg");
       pushMatrix();
       textFont(this.dataFont);
-      print(data.getJSONObject("voltage_data"));
+
+      text("Current Flow", 600, 720 );
+      text("Bus Voltage", 750, 720 );
+
+      this.vNegChart.getColor().setBackground(color(128, 0, 0, 255));
+      this.vNegChart.setColors("incoming", color(30, 255, 20));
+      this.vNegChart.push("incoming", this.v_neg);
+
+
+      this.shuntCurrChart.push("shunt_curr_data", this.shunt_curr);
       popMatrix();
+    }
+    catch(Exception e) {
+      println("Problem with system health " + e);
+    }
+  }
+}
+
+
+
+
 /*
-      translate(this.DrawX, this.DrawY, 0);
+"humidity": 41.23292896925307, "ambient": 28.936064698252835, "ambient_f": 84.0849164568551
+ */
 
-      this.cpuLoadG.Tdraw(this.cpu_load);
-      fill(0, 0, 0);
-      text("CPU Load", 5, 20 );  
-      text(this.cpu_load, 5, 34 );      
-      pushMatrix();
-      translate(250, 0, 0);
 
-      this.cpuTempG.Tdraw(this.cpu_temp);
-      fill(0, 0, 0);
-      text("CPU Temperature", 5, 20 );
-      text(this.cpu_temp, 5, 34 );
-      popMatrix();
-      popMatrix();*/
+
+class AtmosphereReading extends Telemetry {
+  float f_temp, c_temp, humidity;
+
+  PFont dataFont;
+  Chart vNegChart, shuntCurrChart;
+
+  public AtmosphereReading(int BaseX, int BaseY, ArrayList<Pickable> pickables, int pickID) {
+    super(BaseX, BaseY, 100, 100, pickables, pickID);
+    this.dataFont = createFont("Montserrat SemiBold", 10);
+  }
+
+
+  public void update(JSONObject data) {
+    try {
+      this.f_temp = data.getFloat("ambient_f");
+      this.c_temp = data.getFloat("ambient");
+      this.humidity = data.getFloat("humidity");
+
+
+      push();
+      textFont(this.dataFont);
+      translate(this.DrawX, this.DrawY);
+      this.f_temp = setFloatto2(this.f_temp);
+      text("Amient Temp: " + this.f_temp, 0, 0 );
+      translate(0, 15);
+      this.humidity = setFloatto2(this.humidity);
+      text("Humidity: " + this.humidity, 0, 0 );
+      pop();
     }
     catch(Exception e) {
       println("Problem with system health " + e);

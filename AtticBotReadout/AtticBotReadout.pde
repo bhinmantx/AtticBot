@@ -4,21 +4,15 @@ Telemetry reader and some config for a Raspberry Pi based robot with several sen
 
 import controlP5.*;
 ControlP5 cp5;
-Chart myChart;
+Chart vPosChart;
+Chart shuntCurrChart;
 
 float mouseRotX, mouseRotY;
-
 String TelemetryServer = "http://192.168.50.209:8000";
-
 int NUM_TELEMS = 3; //really this should be just a constant and you enable various telemetry later
-
 
 JSONObject attic_bot_data, accel_data, compass_data, telemetry_data;
 JSONArray arm_data;
-
-
-HudCompass compass; //currently offline, can be tested via mouse //see compassServer.py
-
 
 PImage AE35CamFeed, MainDisplay, bgImage;
 boolean NewImageAvailable = false;
@@ -29,6 +23,9 @@ ServoArm armData;
 AccelData accelData;
 HeatVision heatVision;
 SystemHealth systemHealth;
+HudCompass compass;
+PowerReadings powerReadings;
+AtmosphereReading atmosphereReading;
 
 ArrayList<Pickable> pickables = new ArrayList<Pickable>();
 
@@ -45,8 +42,10 @@ void setup() {
   armData = new ServoArm(10, 10, 0, 128, 0);
   accelData = new AccelData(50, 150, 100, 120, pickables, 0);
   compass = new HudCompass(0, 0, pickables, 1);
-
+  powerReadings = new PowerReadings(150, 150, pickables, 6);
   heatVision = new HeatVision(width/2, 200, this, pickables, 2);
+
+  atmosphereReading = new AtmosphereReading(50, 500, pickables, 7);
   systemHealth = new SystemHealth(100, 700, pickables, 3);
   //AE35CamFeed = loadImage("http://192.168.50.99:8030/image.jpg");  //Should we convert AE35 stuff to a telemetry entry? It's from a different endpoint
   bgImage = loadImage("data/bgImage.png", "png"); //get something less boring!
@@ -55,23 +54,41 @@ void setup() {
   //thread("updateHeatVision");
   println("56");
   T_Enabled[0] = accelData;
-
   T_Enabled[1] = compass ;
   T_Enabled[2] = heatVision ;
-  /*
+
   cp5 = new ControlP5(this);
-   myChart = cp5.addChart("dataflow")
-   .setPosition(50, 50)
-   .setSize(100, 100)
-   .setRange(-20, 20)
-   ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
-   .setView(Chart.AREA)
-   .setStrokeWeight(1.5)
-   .setColorCaptionLabel(color(40))
-   ;
-   
-   myChart.addDataSet("incoming");
-   myChart.setData("incoming", new float[100]);*/
+  vPosChart = cp5.addChart("dataflow")
+    .setPosition(750, 730)
+    .setSize(100, 100)
+    .setRange(0, 12)
+    ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
+    .setView(Chart.AREA)
+    .setStrokeWeight(1.5)
+    .setLabel("Shunt Voltage")
+    .setColorCaptionLabel(color(40))
+    ;
+  shuntCurrChart  = cp5.addChart("currflow")
+    .setPosition(600, 730)
+    .setSize(100, 100)
+    .setRange(0, 6)
+    ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
+    .setView(Chart.AREA)
+    .setStrokeWeight(1.5)
+    .setColorCaptionLabel(color(20))
+    .setColorValue(color(255))
+    .setColorActive(color(155))
+    .setColorForeground(color(155))
+    .setLabel("Current Flow")
+    .setColorBackground(color(0, 255, 0))
+    ;
+
+
+  vPosChart.addDataSet("incoming");
+  vPosChart.setData("incoming", new float[100]);
+  shuntCurrChart.addDataSet("shunt_curr_data");
+  shuntCurrChart.setData("shunt_curr_data", new float[100]);
+  powerReadings.addCharts(vPosChart, shuntCurrChart);
 }
 
 
@@ -79,9 +96,7 @@ void draw() {
   background(100, 100, 100);
 
   imageMode(CENTER);
-  
-  println("85");
-
+  image(bgImage, width/2, height/2);
   imageMode(CORNER);
 
   int rightNow = millis();
@@ -119,6 +134,8 @@ void draw() {
     T_Enabled[i].Tdraw();
   }
   systemHealth.update(telemetry_data);
+  atmosphereReading.update(telemetry_data);
+  powerReadings.update(telemetry_data);
 }
 
 
@@ -220,4 +237,12 @@ void mouseDragged() {
 
   mouseRotX = map(mouseY, 0, width/2, PI, 0);
   mouseRotY = map(mouseX, 0, height/2, 0, PI);
+}
+
+
+float setFloatto2(float value){
+      value = value * 100;
+      int value_int = int(value);
+      value = float(value_int/100);
+      return value;
 }

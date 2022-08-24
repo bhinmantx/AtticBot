@@ -343,13 +343,14 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             V_Pos = float("{:6.3f}".format(bus_voltage + shunt_voltage))
             V_Neg = float("{:6.3f}".format(bus_voltage))
             Shunt_Volt = float("{:8.4f}".format(shunt_voltage))
-            Shunt_Curr = float("{:7.4f}".format(current / 1000))
-            Power_Calc = float("{:8.5f}".format(bus_voltage * (current / 1000)))
+            #Shunt_Curr = float("{:7.4f}".format(current / 1000))
+            Shunt_Curr = float("{:7.4f}".format(current))
+            Power_Calc = float("{:8.5f}".format(bus_voltage * current))
             Power_Reg = float("{:6.3f}".format(power))
 
 
             voltage_data = {
-                    'V_pos': V_Pos,
+                    'V_Pos': V_Pos,
                     'V_Neg':     V_Neg,
                     'Shunt_Volt': Shunt_Volt,
                     'Shunt_Curr' :Shunt_Curr, 
