@@ -10,7 +10,7 @@ class AccelData extends Telemetry {
 
   AccelData(int BaseX, int BaseY, int w, int h, ArrayList<Pickable>  pickables, int pickID) {
     super(BaseX, BaseY, w, h, pickables, pickID);
-    dataFont = createFont("Georgia", 10);
+    dataFont = createFont("Montserrat SemiBold", 10);
     //350,384,0, 550, 384, 0
     horizonX1 = 350;
     horizonX2 = 384;
@@ -77,14 +77,14 @@ class AccelData extends Telemetry {
     } else {
       fill(255, 255, 255);
     }
-    text("AccelReading", 5, 40 );
-    text("X: " + x, 5, 80 );
-    text("Y: " + y, 5, 120 );
-    text("Z: " + z, 5, 160);
+    text("AccelReading", 5, 20 );
+    text("X: " + x, 5, 40 );
+    text("Y: " + y, 5, 60 );
+    text("Z: " + z, 5, 80);
 
 
     pushMatrix();
-    translate(200, 400, 100); //moving the 3d model
+    translate(200, 200, 100); //moving the 3d model
     pushMatrix();
 
     rotateX(mouseRotX);

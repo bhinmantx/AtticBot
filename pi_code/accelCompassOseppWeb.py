@@ -17,7 +17,7 @@ import argparse
 import busio
 
 import adafruit_mlx90640 
-
+from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 from gpiozero import CPUTemperature
 import adafruit_sht31d
 
@@ -29,7 +29,15 @@ import adafruit_sht31d
 INTERPOLATE = 10
 
 # MUST set I2C freq to 1MHz in /boot/config.txt
+
 i2c = busio.I2C(board.SCL, board.SDA)
+
+i2c_oops = board.I2C()
+ina219 = INA219(i2c_oops)
+
+
+
+
 
 # low range of the sensor (this will be black on the screen)
 MINTEMP = 20.0
@@ -108,8 +116,6 @@ def gradient(x, width, cmap, spread=1):
 
 for i in range(COLORDEPTH):
     colormap[i] = gradient(i, COLORDEPTH, heatmap)
-
-
 
 
 # initialize the sensor
@@ -327,13 +333,39 @@ class TestHandler(http.server.SimpleHTTPRequestHandler):
             ambient = temperature_humidity.temperature
             ambient_f = ambient * 9/5 + 32
             system_stats = getSystemStats()
+
+            bus_voltage = ina219.bus_voltage  # voltage on V- (load side)
+            shunt_voltage = ina219.shunt_voltage  # voltage between V+ and V- across the shunt
+            current = ina219.current  # current in mA
+            power = ina219.power  # power in watts
+
+            # INA219 measure bus voltage on the load side. So PSU voltage = bus_voltage + shunt_voltage
+            V_Pos = float("{:6.3f}".format(bus_voltage + shunt_voltage))
+            V_Neg = float("{:6.3f}".format(bus_voltage))
+            Shunt_Volt = float("{:8.4f}".format(shunt_voltage))
+            Shunt_Curr = float("{:7.4f}".format(current / 1000))
+            Power_Calc = float("{:8.5f}".format(bus_voltage * (current / 1000)))
+            Power_Reg = float("{:6.3f}".format(power))
+
+
+            voltage_data = {
+                    'V_pos': V_Pos,
+                    'V_Neg':     V_Neg,
+                    'Shunt_Volt': Shunt_Volt,
+                    'Shunt_Curr' :Shunt_Curr, 
+                    'Power_Calc' : Power_Calc,
+                    'Power_Reg': Power_Reg, 
+            }
+
+
             heading_accel = {
                 'compass_data':compass_data,
                 'accel_data': accel_data,
                 'system_stats': system_stats,
                 'humidity': humidity,
                 'ambient': ambient,
-                'ambient_f': ambient_f
+                'ambient_f': ambient_f,
+                'voltage_data': voltage_data
 
             }
 

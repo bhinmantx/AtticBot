@@ -3,7 +3,7 @@ import http.requests.*;
 import processing.video.*;
 
 class HeatVision extends Telemetry {
-  int heatX, heatY, heatSize; //position of the heat image
+  int heatX, heatY, heatSize, baseCameraSize, drawCameraSize; //position of the heat image
   float MINTEMP, MAXTEMP;
   JSONObject heat_data;
   JSONArray heat_readings;
@@ -74,10 +74,12 @@ class HeatVision extends Telemetry {
     translate(this.DrawX, this.DrawY);
     //DISABLED//this.picker.start(this.pickID);
     pushMatrix();
-    this.drawBorder(this.cam.width, this.cam.height, color(255, 255, 255));
-    popMatrix();
+    this.drawBorder(this.cam.width/2, this.cam.height/2, color(255, 255, 255));
     tint(255, 255);
+    this.cam.resize(this.cam.width/2, 0);
     image(this.cam, 0, 0);
+    popMatrix();
+
 
 
     tint(255, 200);

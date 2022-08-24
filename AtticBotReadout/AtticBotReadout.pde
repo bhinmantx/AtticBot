@@ -2,8 +2,9 @@
 Telemetry reader and some config for a Raspberry Pi based robot with several sensors.
  */
 
-
-
+import controlP5.*;
+ControlP5 cp5;
+Chart myChart;
 
 float mouseRotX, mouseRotY;
 
@@ -14,7 +15,7 @@ int NUM_TELEMS = 3; //really this should be just a constant and you enable vario
 
 JSONObject attic_bot_data, accel_data, compass_data, telemetry_data;
 JSONArray arm_data;
-String[] font_list;
+
 
 HudCompass compass; //currently offline, can be tested via mouse //see compassServer.py
 
@@ -42,7 +43,7 @@ void setup() {
   surface.setTitle("Attic Bot Telemetry");
   surface.setResizable(true);
   armData = new ServoArm(10, 10, 0, 128, 0);
-  accelData = new AccelData(50, 150, 200, 300, pickables, 0);
+  accelData = new AccelData(50, 150, 100, 120, pickables, 0);
   compass = new HudCompass(0, 0, pickables, 1);
 
   heatVision = new HeatVision(width/2, 200, this, pickables, 2);
@@ -52,12 +53,25 @@ void setup() {
   MainDisplay = AE35CamFeed;
   //thread("getNewImage"); //Parts of the Pi side are still offline. Should add the threading to its own "Enabled" array
   //thread("updateHeatVision");
-
+  println("56");
   T_Enabled[0] = accelData;
+
   T_Enabled[1] = compass ;
   T_Enabled[2] = heatVision ;
-
-  println("added enabled telemetry!");
+  /*
+  cp5 = new ControlP5(this);
+   myChart = cp5.addChart("dataflow")
+   .setPosition(50, 50)
+   .setSize(100, 100)
+   .setRange(-20, 20)
+   ///.setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
+   .setView(Chart.AREA)
+   .setStrokeWeight(1.5)
+   .setColorCaptionLabel(color(40))
+   ;
+   
+   myChart.addDataSet("incoming");
+   myChart.setData("incoming", new float[100]);*/
 }
 
 
@@ -65,7 +79,8 @@ void draw() {
   background(100, 100, 100);
 
   imageMode(CENTER);
-  image(bgImage, width/2, height/2);
+  
+  println("85");
 
   imageMode(CORNER);
 
